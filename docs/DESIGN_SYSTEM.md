@@ -195,7 +195,7 @@ These are used in the footer, cursor and captions: `--font-size-10`, `-11`, `-12
 | `--lh-tight` | 0.9 | | `--ls-tight` | −0.02em (Figma −2%) |
 | `--lh-snug` | 1.1 | | `--ls-body` | 0.02em (Figma 2%) |
 | `--lh-normal` | 1.25 | | `--ls-mono-wide` | 0.2em (Figma 20%) |
-| `--lh-loose` | 1.4 | | | |
+| `--lh-loose` | 1.4 | | `--ls-body-fixed` | 0.32px (footer description and fields; stays 0.32px at 14px) |
 | `--lh-small` | 1.45 | | | |
 
 ### Utility classes

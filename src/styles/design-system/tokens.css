@@ -149,6 +149,7 @@
   --ls-none: 0;
   --ls-tight: -0.02em;   /* Figma −2%  : H1, H2, Label, Body Light */
   --ls-body: 0.02em;     /* Figma  2%  : Body */
+  --ls-body-fixed: 0.32px; /* 2% of 16px, kept when the footer copy drops to 14px */
   --ls-mono-wide: 0.2em; /* Figma 20%  : H1 Mono, H2 Mono */
 
   /* ---------- Spacing ---------- */
