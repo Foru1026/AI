@@ -1,0 +1,175 @@
+.site-interface .site-header[hidden] {
+  display: none;
+}
+@media (max-width: 1023.98px) {
+  .site-interface .contact-footer {
+    min-height: 100dvh;
+    justify-content: flex-start;
+  }
+  .site-interface .contact-footer__bottom {
+    margin-top: auto;
+  }
+}
+@media (min-width: 768px) {
+  .site-interface .contact-footer {
+    height: calc(714px + 100vw * 0.1423611111);
+    gap: 140px;
+  }
+  .site-interface .contact-footer__top {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .site-interface .contact-footer__brand-space {
+    height: 26.0047px;
+  }
+  .site-interface .contact-footer__details {
+    width: auto;
+    justify-content: flex-start;
+    gap: 80px;
+    margin-right: 134px;
+  }
+  .site-interface .contact-footer__contacts {
+    flex: none;
+  }
+  .site-interface .contact-footer__title {
+    font-size: 48px;
+    letter-spacing: -0.96px;
+    height: 43px;
+  }
+  .site-interface .contact-footer__form {
+    flex-direction: row;
+    gap: 41px;
+  }
+  .site-interface .contact-footer__form-column--left {
+    width: 331px;
+    flex: none;
+  }
+  .site-interface .contact-footer__form-column--right {
+    flex: 1;
+  }
+  .site-interface .contact-footer__field {
+    font-weight: var(--fw-display-light);
+    line-height: 1;
+    letter-spacing: -0.32px;
+  }
+  .site-interface .contact-footer__field input {
+    height: 1em;
+  }
+  .site-interface .contact-footer__credits {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .site-interface .contact-footer__top,
+  .site-interface .contact-footer__credits {
+    min-width: 770px;
+  }
+}
+@media (min-width: 1024px) {
+  .site-interface .contact-footer-viewport {
+    height: 100dvh;
+  }
+  .site-interface .contact-footer {
+    --footer-fixed-height: 433px;
+    --footer-wordmark-height: calc(100vw * 0.1423611111);
+    height: 100dvh;
+    gap: max(
+      0px,
+      calc(
+        (100dvh - var(--footer-fixed-height) - var(--footer-wordmark-height)) /
+          2
+      )
+    );
+  }
+  .site-interface .contact-footer__details {
+    gap: 133px;
+    margin-right: 233px;
+  }
+  .site-interface .contact-footer__middle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+  .site-interface .contact-footer__proposal {
+    width: 682px;
+    flex: none;
+  }
+  .site-interface .contact-footer__field,
+  .site-interface .contact-footer__submit {
+    height: 48px;
+  }
+}
+@media (min-width: 1024px) and (max-height: 680px) {
+  .site-interface .contact-footer {
+    --footer-fixed-height: 378px;
+    --footer-wordmark-height: min(
+      calc(100vw * 0.1423611111),
+      max(0px, calc(100dvh - 379px))
+    );
+  }
+  .site-interface .contact-footer__proposal {
+    gap: 28px;
+  }
+  .site-interface .contact-footer__title {
+    font-size: 36px;
+    height: 32px;
+    letter-spacing: -0.72px;
+  }
+  .site-interface .contact-footer__form-column {
+    gap: 24px;
+  }
+  .site-interface .contact-footer__field,
+  .site-interface .contact-footer__submit {
+    height: 40px;
+  }
+  .site-interface .contact-footer__field {
+    padding-bottom: 4px;
+  }
+  .site-interface .contact-footer__bottom {
+    align-items: center;
+  }
+  .site-interface .contact-footer__wordmark {
+    width: min(100%, max(0px, calc((100dvh - 379px) * 7.0243902439)));
+  }
+}
+@media (max-width: 374px) {
+  .site-interface .contact-footer__top,
+  .site-interface .contact-footer__middle,
+  .site-interface .contact-footer__credits {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .site-interface .contact-footer__details {
+    gap: 12px;
+  }
+  .site-interface .contact-footer__social {
+    width: 88px;
+  }
+  .site-interface .contact-footer__contacts {
+    flex: 1;
+  }
+  .site-interface .contact-footer__social-links,
+  .site-interface .contact-footer__address {
+    font-size: 11px;
+  }
+  .site-interface .contact-footer__description {
+    font-size: 14px;
+  }
+}
+.site-interface.footer-preview {
+  position: relative;
+  inset: auto;
+  min-height: 100vh;
+  background: #000;
+}
+.site-interface .contact-footer-viewport.is-preview {
+  position: relative;
+  inset: auto;
+  min-height: 100vh;
+  mask-image: none;
+  -webkit-mask-image: none;
+}

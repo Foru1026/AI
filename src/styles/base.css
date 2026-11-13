@@ -1,0 +1,38 @@
+:root {
+  font-family: var(--font-display);
+  color: #f3f8fb;
+  background: #03070a;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+html,
+body {
+  overflow-x: clip;
+  background: #01050a;
+}
+body {
+  overscroll-behavior-y: none;
+}
+html {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+button,
+a {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}

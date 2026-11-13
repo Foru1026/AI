@@ -1,0 +1,175 @@
+/* ==========================================================================
+   NODDAL — Design tokens
+   Source: Figma "Pavel / Nikolay. Awwwards Sprint s.26" → sections 390 / 768 / 1440
+   Every value below comes from the Figma variables & text styles.
+
+   FLUID VALUES — three anchor points
+   Sizes hit the exact mockup value at 390, 768 and 1440 and scale linearly
+   in between (two segments, switched at the 768 breakpoint):
+     390 → 768   clamp(MOBILE, a + b·vw, TABLET)     b = (T − M) / 378
+     768 → 1440  clamp(TABLET, a + b·vw, DESKTOP)    b = (D − T) / 672
+     a = start value − b · start width
+   ========================================================================== */
+
+:root {
+  /* ---------- Colors (Figma: White, Black, Blue, White 40/20/10) ---------- */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-blue: #1f85d9;
+  --color-orange: #ff976b;          /* mobile tunnel glow (02.01, Ellipse 310) */
+  --color-avatar-badge: #ebe3e1;    /* Figma: "Avatar Bage" */
+
+  --white-60: rgba(255, 255, 255, 0.6);
+  --white-50: rgba(255, 255, 255, 0.5);
+  --white-40: rgba(255, 255, 255, 0.4);   /* Figma: White 40 — muted text */
+  --white-20: rgba(255, 255, 255, 0.2);   /* Figma: White 20 — stat brackets */
+  --white-10: rgba(255, 255, 255, 0.1);   /* Figma: White 10 — glass cards */
+  --grey-15: rgba(168, 168, 168, 0.15);   /* mobile social widget fill */
+
+  --divider: rgba(255, 255, 255, 0.16);        /* white 40% @ layer opacity 40% */
+  --divider-mobile: rgba(255, 255, 255, 0.12); /* white 30% @ layer opacity 40% */
+  --divider-v-mobile: rgba(255, 255, 255, 0.24);
+
+  /* Gradient text (Figma: "H1 Color", "H2 Color") */
+  --gradient-h1: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+  --gradient-h2: linear-gradient(90deg, #ffffff 0%, rgba(169, 169, 169, 0.3) 100%);
+  /* Figma: "Fade" — section top/bottom fades */
+  --gradient-fade: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
+
+  /* ---------- Font families ---------- */
+  --font-display: "Neue Haas Grotesk Display Pro", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Weights = the font files' own weight classes (same numbers as Figma Dev Mode) */
+  --fw-display-light: 400;   /* NHG 45 Light */
+  --fw-display-roman: 500;   /* NHG 55 Roman */
+  --fw-mono-light: 300;      /* Geist Mono Light */
+  --fw-mono-regular: 400;    /* Geist Mono Regular */
+  --fw-mono-medium: 500;     /* Geist Mono Medium */
+
+  /* ---------- Type scale: segment 390 → 768 (segment 768 → 1440 below) ---------- */
+  /*                                                                  390  768  1440 */
+  /* H1/H2: below 390px they shrink with the text column (390 − 2×16 = 358px:
+     44/358 = 0.1229, 36/358 = 0.10056) so the Figma line breaks never change */
+  --fs-h1:            min(clamp(2.75rem, 2.1052rem + 2.6455vw, 3.375rem), (100vw - 32px) * 0.1229);   /* 44 → 54 → 80 */
+  --fs-h2:            min(clamp(2.25rem, 1.8631rem + 1.5873vw, 2.625rem), (100vw - 32px) * 0.10056);  /* 36 → 42 → 48 */
+  --fs-body:          1rem;                                             /* 16 → 16 → 16 */
+  --fs-label:         0.875rem;                                         /* 14 → 14 → 16 */
+  --fs-fact:          clamp(0.75rem, 0.4921rem + 1.0582vw, 1rem);      /* 12 → 16 → 16  hero facts */
+  --fs-body-light:    0.75rem;                                          /* 12 → 12 → 16 */
+  --fs-small:         0.75rem;                                          /* 12 → 12 → 12 */
+  --fs-button:        0.875rem;                                         /* 14 → 14 → 14 */
+  --fs-h1-mono:       1rem;                                             /* 16 → 16 → 20 */
+  --fs-h2-mono:       1rem;                                             /* 16 → 16 → 16 */
+  --fs-label-mono:    0.875rem;                                         /* 14 → 14 → 18 */
+  --fs-footnote-mono: 0.75rem;                                          /* 12 → 12 → 14 */
+  --fs-nav-mono:      0.75rem;                                          /* 12 → 12 → 14 */
+  --fs-body-mono:     0.75rem;                                          /* 12 → 12 → 12 */
+
+  /* Line heights */
+  --lh-none: 1;
+  --lh-tight: 0.9;
+  --lh-snug: 1.1;
+  --lh-small: 1.45;
+
+  /* Letter spacing (Figma % → em) */
+  --ls-tight: -0.02em;   /* Figma −2%  : H1, H2, Label, Body Light */
+  --ls-body: 0.02em;     /* Figma  2%  : Body */
+  --ls-mono-wide: 0.2em; /* Figma 20%  : H1 Mono, H2 Mono */
+
+  /* ---------- Spacing ---------- */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-56: 56px;
+  --space-84: 84px;
+
+  /* Page gutter: 16 (390) → 28 (768) → 28 (1440) */
+  --gutter: clamp(16px, 3.619px + 3.1746vw, 28px);
+  /* Vertical padding of section text blocks: 32 mobile & tablet / 28 desktop */
+  --block-pad-y: var(--space-32);
+
+  /* ---------- Layout ---------- */
+  --header-pad: 28px;               /* top/bottom; sides use --gutter */
+  --header-h: 88px;                 /* 28 + 32 logo + 28 */
+  --logo-w: 137.635px;
+  --logo-h: 32px;
+
+  --scene-min-h: 600px;             /* sections never get shorter than this */
+  --fade-h: 30.69%;                 /* 259 / 844 (mobile) → 200 / 900 on desktop */
+
+  /* Artwork "stage" aspect ratio — the box every overlay is pinned to.
+     Mobile: Figma image layers 471 × 844. Tablet: frame 768 × 1024. Desktop: 1440 × 900. */
+  --stage-ratio: 0.55806;           /* 471 / 844 */
+
+  --chapter-nav-top: 104px;         /* chapter nav offset from section top: 104 mobile / 108 tablet */
+
+  /* ---------- Effects ---------- */
+  --blur-card: 27px;                /* Figma background blur on subject cards */
+  --blur-widget: 12px;              /* social widget */
+  --dot: 4px;                       /* little square bullets */
+  --marker: 6px;                    /* chapter nav active marker */
+
+  /* ---------- Motion (placeholders for the dev's animation layer) ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 200ms;
+  --dur-base: 400ms;
+  --dur-slow: 700ms;
+
+  /* Scene switching (story mode, components.css §11) */
+  --scene-fade: 900ms;              /* crossfade between scenes */
+  --media-settle: 1800ms;           /* background scale 1.08 → 1 */
+  --reveal-shift: 28px;             /* how far content travels in / out */
+  --reveal-in: 800ms;               /* content entrance duration */
+  --reveal-out: 450ms;              /* content exit duration */
+  --reveal-delay: 300ms;            /* pause before the first element enters */
+  --reveal-stagger: 90ms;           /* gap between elements (style="--i:N") */
+
+  /* ---------- Z-index ---------- */
+  --z-media: 0;
+  --z-overlay: 1;
+  --z-fade: 2;
+  --z-content: 3;
+  --z-nav: 20;
+  --z-header: 50;
+}
+
+/* Breakpoints (CSS variables can't be used inside @media — keep in sync):
+     < 768px      → mobile layout  (390 mockup)
+     768–1023px   → tablet layout  (768 mockup)
+     ≥ 1024px     → desktop layout (1440 mockup)                              */
+@media (min-width: 768px) {
+  :root {
+    /* Type scale: segment 768 → 1440                                  768  1440 */
+    --fs-h1:            clamp(3.375rem, 1.5179rem + 3.869vw, 5rem);    /* 54 → 80 */
+    --fs-h2:            clamp(2.625rem, 2.1964rem + 0.8929vw, 3rem);   /* 42 → 48 */
+    --fs-label:         clamp(0.875rem, 0.7321rem + 0.2976vw, 1rem);   /* 14 → 16 */
+    --fs-fact:          1rem;                                           /* 16 → 16 */
+    --fs-body-light:    clamp(0.75rem, 0.4643rem + 0.5952vw, 1rem);    /* 12 → 16 */
+    --fs-h1-mono:       clamp(1rem, 0.7143rem + 0.5952vw, 1.25rem);    /* 16 → 20 */
+    --fs-label-mono:    clamp(0.875rem, 0.5893rem + 0.5952vw, 1.125rem); /* 14 → 18 */
+    --fs-footnote-mono: clamp(0.75rem, 0.6071rem + 0.2976vw, 0.875rem); /* 12 → 14 */
+    --fs-nav-mono:      clamp(0.75rem, 0.6071rem + 0.2976vw, 0.875rem); /* 12 → 14 */
+
+    --stage-ratio: 0.75;            /* 768 / 1024 */
+    --fade-h: 25.3%;                /* 259 / 1024 */
+    --chapter-nav-top: 108px;       /* header 88 + 20 */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --block-pad-y: var(--space-28);
+    --fade-h: 22.222%;              /* 200 / 900 */
+    --stage-ratio: 1.6;             /* 1440 / 900 */
+  }
+}

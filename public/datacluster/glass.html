@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en" class="loading">
+<head>
+<script src="./bridge.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glass Cube</title>
+<link rel="stylesheet" href="/assets/cursor/native.css">
+<style>
+  html, body { margin:0; background:#02040a; }
+  html.loading, html.loading body { overflow:hidden; }
+  #loader { position:fixed; inset:0; z-index:10; background:#02040a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    font:500 11px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing:.32em; color:#8fb4ff; transition:opacity .8s ease; }
+  #loader .track { width:180px; height:1px; background:rgba(143,180,255,.15); overflow:hidden; }
+  #loader b { display:block; height:100%; background:#bcd4ff; transform:scaleX(0); transform-origin:left; transition:transform .35s ease; box-shadow:0 0 8px #6fa2ff; }
+  #loader span { opacity:.6; letter-spacing:.2em; }
+  #loader.done { opacity:0; pointer-events:none; }
+  #track { height: 1000vh; }
+  #hint { position:fixed; z-index:2; left:50%; bottom:34px; transform:translateX(-50%); font:500 11px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing:.32em; text-transform:uppercase; color:#8fb4ff; opacity:.55; pointer-events:none; display:flex; flex-direction:column; align-items:center; gap:12px; transition:opacity .4s; }
+  #hint i { width:1px; height:34px; background:linear-gradient(#8fb4ff, transparent); animation:drip 1.8s ease-in-out infinite; transform-origin:top; }
+  @keyframes drip { 0%{transform:scaleY(0)} 50%{transform:scaleY(1)} 100%{transform:scaleY(1); opacity:0} }
+  canvas { position:fixed; inset:0; width:100vw !important; height:100vh !important; display:block; }
+  html.embedded, html.embedded body { height:100%; overflow:hidden; }
+  html.embedded #track { height:100vh; }
+  html.embedded #loader, html.embedded #hint { display:none; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/three.module.min.js",
+  "three/addons/": "./vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<div id="loader"><div>LOADING</div><div class="track"><b></b></div><span>0%</span></div>
+<div id="track"></div>
+<div id="hint">Scroll<i></i></div>
+<script type="module">
+/* ============================================================
+   Glass cube — thick glass plates with live code and pictures
+   sealed inside. Physically based glass (refraction, thickness,
+   dispersion, iridescence) lit by a generated studio, with bloom.
+   Plates fly in and lock together, part under the cursor and
+   close up again; loose plates drift around.
+   ============================================================ */
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { resolveGlassBodies } from './collisions.js';
+import { createTransmissionBackdrop } from './transmission-backdrop.js';
+import { createBluePhotoAtlas, GLASS_CARD_IMAGES, PHOTO_ASPECT, photoAtlasRegion } from './blue-photos.js';
+import { cardFlightRotation, STAR_COUNTS, STAR_VERTEX_SHADER } from './glass-flight.js';
+import { createEyeMaterial, createDestinationScreen } from './eye-material.js';
+import { createZoomBlur } from './zoom-blur.js';
+import { createLensPass } from './lens-pass.js';
+import { LENS, normalizeLens, applyLensSettings, lensAmount } from './chromatic-lens.js';
+import { GLASS_SCROLL_SCREENS, glassScrollProgress, glassFlightProgress } from './glass-timeline.js';
+import { EYE_ARRIVAL, eyeArrival, pupilAppearanceTime, pupilRadius as animatedPupilRadius, pupilPointerProximity, smoothPupilRadius, pupilPreviewBlend } from './eye-timeline.js';
+import { createJourney } from './journey.js';
+import { JOURNEY_SCROLL_SCREENS } from './journey-timeline.js';
+import { CODE_HISTORY, historyPanelLines, historyTypingReveal } from './code-history.js';
+
+const CONFIG = {
+  cubeSize: 2.0,
+  floaters: 14,
+  assemble: 2.6,        // s for the plates to fly in
+  quality: 1.5,         // max device-pixel ratio (lowered automatically on phones)
+  bloom: 0.4,
+};
+
+const mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+
+const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
+const lerp = (a,b,t) => a + (b-a)*t;
+const s5 = (a,b,x) => { const t = clamp((x-a)/(b-a), 0, 1); return t*t*t*(t*(t*6-15)+10); };
+let seed = 11; const R = () => (seed = (seed*16807) % 2147483647)/2147483647;
+const rnd = (a,b) => a + R()*(b-a);
+const norm = v => { const l = Math.hypot(...v) || 1; return v.map(x => x/l); };
+
+/* ---------------- renderer, camera, studio light ---------------- */
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.25 : CONFIG.quality));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02040a);
+const camera = new THREE.PerspectiveCamera(34, innerWidth/innerHeight, 0.025, 230);
+camera.position.set(0, 0, 8);
+
+// A dark studio of glowing panels supplies coloured reflections (no image files).
+{
+  const env = new THREE.Scene();
+  env.background = new THREE.Color(0x07112a);
+  const panel = (w, h, color, intensity, pos, look) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(intensity), side: THREE.DoubleSide }));
+    m.position.set(...pos); m.lookAt(...look); env.add(m);
+  };
+  panel(7, 5, 0xd6e8ff, 3.0, [-6, 5, 6], [0, 0, 0]);       // big soft key, up-left-front
+  panel(6, 6, 0x8fc2ff, 0.35, [2, 9, -2], [0, 0, 0]);       // overhead softbox: bright tops, icy gradients on the sides
+  panel(12, 0.3, 0xe6f0ff, 3.0, [0, 3.5, -3], [0, 0, 0]);   // thin strip light: long streaks on the glass
+  panel(3.5, 9, 0x4f8dff, 4.5, [7, 0, -1], [0, 0, 0]);      // cold blue rim from the right
+  panel(5, 4, 0x8a6bff, 2.6, [-7, -3, -3], [0, 0, 0]);      // violet bounce
+  panel(4, 6, 0xff8a45, 1.8, [5, 1, -8], [0, 0, 0]);        // same sunset-orange as the hero's rear-right light
+  panel(14, 8, 0x3f7dff, 0.5, [0, 0, 9], [0, 0, 0]);        // broad cool fill from the front: faces never go black
+  panel(6, 3, 0x9fe0ff, 2.2, [5, -5, 5], [0, 0, 0]);        // icy under-light
+  panel(10, 10, 0x0d1c40, 1.0, [0, -8, 0], [0, 0, 0]);      // dim floor
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(env, 0.035).texture;
+}
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-4, 6, 5); scene.add(key);
+const rim = new THREE.DirectionalLight(0x6fa2ff, 2.0); rim.position.set(6, 1, -3); scene.add(rim);
+
+scene.add(camera);
+scene.fog = new THREE.Fog(0x02040a, 11, 30);           // far plates sink into the dark
+// The glass sees a black void instead of the old hidden, brightly lit room.
+// Only the transmission capture draws this backdrop; the final star field and
+// the blue/orange studio reflections remain unchanged.
+let inTransmission = () => false;
+createTransmissionBackdrop(camera, target => inTransmission(target));
+/* ---------------- content: live code panels ---------------- */
+const FONT = 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
+const COL = { com:'#5872b0', str:'#96e1ff', num:'#ffffff', key:'#509bff', fn:'#7dcdff', id:'#d6e4ff', pun:'#7d94c8' };
+const KEY = /^(const|let|var|function|async|await|return|import|from|export|class|new|if|else|for|of|in|while|def|fn|pub|struct|impl|use|mut|match|self|type|interface|extends|yield|with|as|SELECT|FROM|WHERE|JOIN|ON|GROUP|BY|ORDER|LIMIT|uniform|vec3|vec2|float|void|true|false|None|null|try|catch)$/;
+function tokens(line){
+  const out = []; const re = /(\/\/.*$|#.*$|--.*$)|("[^"]*"?|'[^']*'?|`[^`]*`?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)(\s*\()?|(\s+)|(.)/g; let m;
+  while ((m = re.exec(line))){
+    if (m[1]) out.push([m[1],'com']); else if (m[2]) out.push([m[2],'str']); else if (m[3]) out.push([m[3],'num']);
+    else if (m[4]){ out.push([m[4], KEY.test(m[4]) ? 'key' : (m[5] ? 'fn' : 'id')]); if (m[5]) out.push([m[5],'pun']); }
+    else if (m[6]) out.push([m[6],'id']); else out.push([m[7],'pun']);
+  }
+  return out;
+}
+const SNIPS = [
+`import React, { useState } from "react";
+import { Modal } from "@ui/modal";
+export const EditUserModal = ({ user }) => {
+  const [name, setName] = useState(user.name);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { if (isOpen) reset(); }, [isOpen]);
+  return <Modal onSave={save} />;
+};`,
+`async function buildFeature(spec) {
+  const plan = await model.reason(spec);
+  for (const file of plan.files) {
+    await workspace.write(file.path, file.code);
+    await tests.run(file, { coverage: 1.0 });
+  }
+  return deploy(plan, { region: "edge" });
+}`,
+`def detect(frame, threshold=0.92):
+    tensors = encoder(frame.normalize())
+    boxes = [b for b in head(tensors)
+             if b.score > threshold]
+    return track(boxes, memory=CONTEXT)
+
+class Pipeline:
+    def __call__(self, batch):
+        return optimize(batch, "latency")`,
+`SELECT region, AVG(latency) AS ms
+FROM inference_log
+WHERE created_at > now() - '1 hour'
+GROUP BY region
+ORDER BY ms ASC
+LIMIT 20;`,
+`uniform float uTime;
+vec3 prism(vec2 uv) {
+  float w = fract(uv.x * 2.6 - uTime);
+  return spectrum(w) * light(uv);
+}
+void main() {
+  gl_FragColor = vec4(prism(uv), 1.0);
+}`,
+`export default async function handler(req) {
+  const user = await auth(req);
+  const data = await db.query(user.id);
+  const reply = await ai.generate({
+    prompt: req.body.prompt,
+    context: data,
+  });
+  return Response.json(reply);
+}`,
+`fn main() -> Result<()> {
+    let model = Model::load("core-v5")?;
+    let out = model.infer(&input)?;
+    println!("{:?}", out.tokens);
+    Ok(())
+}`,
+`const agent = new Agent({ tools, memory });
+agent.on("step", (s) => log(s.thought));
+const result = await agent.run(
+  "ship the checkout redesign",
+);
+console.log(result.summary);`,
+];
+const PW = 1024, PH = 1024, PFS = 34, PLH = 46, PVIS = 21, TEXW = 1.6;   // TEXW: world size of one panel -> same text size on every plate
+const panels = SNIPS.map((src, i) => {
+  const c = document.createElement('canvas'); c.width = PW; c.height = PH; const x = c.getContext('2d');
+  x.font = `${PFS}px ${FONT}`; x.textBaseline = 'top';
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  return { c, x, tex, cw: x.measureText('M').width, chunks: ('\n\n' + src).match(/\n|\s+|\w+|[^\w\s]/g) || [], typed: SNIPS[(i + 3) % SNIPS.length], k: 0, next: 0.6 + i*0.23, hold: -1, src, i, blink: true, dirty: true };
+});
+function drawPanel(p){
+  const x = p.x;
+  x.clearRect(0, 0, PW, PH);
+  const lines = p.typed.split('\n'), first = Math.max(0, lines.length - PVIS);
+  for (let i = first; i < lines.length; i++){
+    const y = 24 + (i - first)*PLH, cur = i === lines.length - 1;
+    x.globalAlpha = 0.45; x.fillStyle = '#5f73a5'; x.fillText(String(i + 1).padStart(2, ' '), 16, y); x.globalAlpha = 1;
+    let cx = 16 + p.cw*3.5;
+    for (const [t, k] of tokens(lines[i])){ x.fillStyle = COL[k]; x.fillText(t, cx, y); cx += t.length*p.cw; }
+    if (cur && p.blink){ x.fillStyle = '#ebf4ff'; x.fillRect(cx + 4, y - 2, p.cw*0.6, PFS + 6); }
+  }
+  p.tex.needsUpdate = true;
+}
+panels.forEach(drawPanel);
+// One compact, stable story texture per flight card. Dates and footnotes never
+// scroll away; only its supplied code example types in. No 20 large PNG assets.
+const historyPanels = new Map();
+function createHistoryPanel(index){
+  const story = CODE_HISTORY[index], [code, notes] = historyPanelLines(index);
+  const c = document.createElement('canvas'); c.width = 512; c.height = 270;
+  const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  // Fit the complete example, not its current partial text. This keeps glyphs
+  // stable while typing and reserves the same margins for long supplied lines.
+  x.font = `17px ${FONT}`;
+  const codeWidth = Math.max(...code.map(line => x.measureText(line).width));
+  const codeSize = Math.min(17, Math.floor(17*(512-53-18)/codeWidth));
+  const panel = { c, x, tex, story, code, notes, codeSize, index, started: null, drawn: -1 };
+  drawHistoryPanel(panel, 0); historyPanels.set(index, panel);
+  return tex;
+}
+function drawHistoryPanel(p, reveal){
+  const x = p.x; x.clearRect(0, 0, 512, 270); x.textBaseline = 'top';
+  x.font = `15px ${FONT}`; x.fillStyle = '#ffa976';
+  x.fillText(`${String(p.index+1).padStart(2, '0')} / 20   ${p.story.dateLabel.toUpperCase()}`, 18, 14);
+  x.font = `17px ${FONT}`; x.fillStyle = '#d6eaff'; x.fillText(p.story.title, 18, 39);
+  x.font = `${p.codeSize}px ${FONT}`;
+  let remaining = reveal, cursor = null;
+  p.code.forEach((line, row) => {
+    const part = line.slice(0, Math.max(0, remaining)), y = 73 + row*23;
+    x.fillStyle = '#657f9e'; x.fillText(String(row+1).padStart(2, '0'), 18, y);
+    let cx = 53;
+    for (const [text, kind] of tokens(part)){ x.fillStyle = COL[kind]; x.fillText(text, cx, y); cx += x.measureText(text).width; }
+    if (remaining >= 0 && remaining <= line.length) cursor = [cx, y];
+    remaining -= line.length + 1;
+  });
+  if (cursor){ x.fillStyle = '#8ed8ff'; x.fillRect(cursor[0]+2, cursor[1], 2, p.codeSize); }
+  x.font = `14px ${FONT}`; x.fillStyle = '#a3bfd7';
+  p.notes.forEach((line, row) => x.fillText(line, 18, 183 + row*20));
+  // Footnote is deliberately a readable source label, not a long URL.
+  x.fillStyle = '#ffa976'; x.fillText(`[${String(p.index+1).padStart(2, '0')}] ${p.story.source}`, 18, 240);
+  texUpdate(p, reveal);
+}
+function texUpdate(panel, reveal){ panel.tex.needsUpdate = true; panel.drawn = reveal; }
+let historyLastDraw = -1, historyTurn = 0;
+function updateHistoryPanels(now){
+  // Warm-up and cube disassembly must not spend the first cards' typing before
+  // the visitor reaches CODE_GEN. Returning never resets a completed example.
+  if (gprog < .14) return;
+  // At most one 512x270 upload per 1/20s, and only approaching cards type.
+  // Complete cards remain stable: no blinking or recurring blank canvases.
+  if (now - historyLastDraw < 1/20) return;
+  const near = field.filter(mesh => mesh.userData.storyIndex != null && camera.position.z - mesh.userData.z > -2 && camera.position.z - mesh.userData.z < 24);
+  for (let n = 0; n < near.length; n++){
+    const panel = historyPanels.get(near[(historyTurn++)%near.length].userData.storyIndex);
+    if (panel.started === null) panel.started = now;
+    const reveal = historyTypingReveal(panel.code, now-panel.started);
+    if (reveal !== panel.drawn){ drawHistoryPanel(panel, reveal); historyLastDraw = now; break; }
+  }
+}
+let turn = 0, lastDraw = -1;
+function updatePanels(now){
+  panels.forEach(p => {
+    if (p.hold > 0){ if (now > p.hold){ p.hold = -1; p.src = SNIPS[(p.i + 5*(++p.k)) % SNIPS.length]; p.typed = p.typed.split('\n').slice(-PVIS).join('\n');   // never blank: the next snippet types in below and scrolls up
+      p.chunks = ('\n\n' + p.src).match(/\n|\s+|\w+|[^\w\s]/g) || []; p.next = now + 0.3; p.dirty = true; } }
+    else while (now >= p.next && p.chunks.length){
+      const c = p.chunks.shift(); p.typed += c; p.dirty = true;
+      p.next += c === '\n' ? (Math.random() < 0.2 ? 0.45 : 0.1) : (/\s/.test(c) ? 0.008 : 0.014 + Math.random()*0.025);
+      if (!p.chunks.length) p.hold = now + 1.5 + Math.random()*2;
+    }
+    const b = ((now + p.i*0.37)*2.0 % 1) < 0.6; if (b !== p.blink){ p.blink = b; p.dirty = true; }
+  });
+  if (now - lastDraw > 1/24){ lastDraw = now;
+    for (let k = 0; k < panels.length; k++){ const p = panels[turn++ % panels.length]; if (p.dirty){ p.dirty = false; drawPanel(p); break; } } }
+  // each window scrolls smoothly so the line being typed stays in view
+  panels.forEach(p => {
+    if (!p.clones) return;
+    const n = p.typed.split('\n').length, row = Math.min(n, PVIS) - 1, yc = (24 + (row + 1)*PLH + 10)/PH;
+    p.clones.forEach(m => { const ry = m.repeat.y, top = Math.max(0, Math.min(1 - ry, yc - ry)); m.userData.top += (top - m.userData.top)*0.12; m.offset.y = 1 - ry - m.userData.top; });
+  });
+}
+
+/* ---------------- content: 20 user pictures in one shared 16:9 atlas ---------------- */
+const photoImg = document.createElement('canvas'); photoImg.width = photoImg.height = 1;
+const photoBase = new THREE.Texture(photoImg); photoBase.colorSpace = THREE.SRGBColorSpace; photoBase.anisotropy = 4;
+const photoClones = [];
+
+
+/* ---------------- the cube: peeled into layers of glass, each layer cut into plates ---------------- */
+function slabPieces(box, out){
+  const size = [box[3]-box[0], box[4]-box[1], box[5]-box[2]];
+  let thin = 0; for (let k=1;k<3;k++) if (size[k] < size[thin]) thin = k;
+  const ax = [0,1,2].filter(k => k !== thin).sort((a, b) => size[b] - size[a])[0];
+  if (size[ax] > 0.9 && R() < 0.8){
+    const n = size[ax] > 1.5 && R() < 0.5 ? 3 : 2; const cuts = [box[ax]];
+    for (let i=1;i<n;i++) cuts.push(box[ax] + size[ax]*(i/n + rnd(-0.12, 0.12)));
+    cuts.push(box[ax+3]);
+    for (let i=0;i<n;i++){ const b = box.slice(); b[ax] = cuts[i]; b[ax+3] = cuts[i+1]; out.push(b); }
+  } else out.push(box);
+}
+function peel(box, depth, out){
+  const size = [box[3]-box[0], box[4]-box[1], box[5]-box[2]];
+  if (Math.min(...size) < 0.5 || depth > 9){ slabPieces(box, out); return; }
+  const w = size.map(v => v*v), sum = w[0] + w[1] + w[2]; let r = R()*sum, ax = 0; while (r > w[ax]) { r -= w[ax]; ax++; }
+  const t = Math.min(size[ax]*0.5, rnd(0.2, 0.36)), low = R() < 0.5;
+  const slab = box.slice(), rest = box.slice();
+  if (low){ slab[ax+3] = box[ax] + t; rest[ax] = box[ax] + t; } else { slab[ax] = box[ax+3] - t; rest[ax+3] = box[ax+3] - t; }
+  slabPieces(slab, out); peel(rest, depth + 1, out);
+}
+const H = CONFIG.cubeSize/2, boxes = []; peel([-H,-H,-H, H,H,H], 0, boxes);
+const GAP = 0.045;
+
+const cube = new THREE.Group(); scene.add(cube);
+const world = new THREE.Group(); scene.add(world);           // floaters live here (they don't tilt with the cube)
+
+function glassMaterial(thick){
+  return new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, metalness: 0, roughness: 0.02,
+    transmission: 1, thickness: thick, ior: 1.5, dispersion: 1.1,
+    attenuationColor: new THREE.Color(0x6aa2ff), attenuationDistance: 1.4,
+    specularIntensity: 1, clearcoat: 0.8, clearcoatRoughness: 0.03,
+    iridescence: 0.45, iridescenceIOR: 1.35, iridescenceThicknessRange: [180, 520],
+    envMapIntensity: 2.0,
+  });
+}
+function contentMaterial(kind, idx, w, h, storyIndex){
+  let map;
+  if (storyIndex != null){
+    map = createHistoryPanel(storyIndex);
+  } else if (kind === 0){
+    map = panels[idx].tex.clone(); map.source = panels[idx].tex.source; map.needsUpdate = true;
+    const rx = Math.min(1, w/TEXW), ry = Math.min(1, h/TEXW*PW/PH);
+    map.repeat.set(rx, ry); map.offset.set(0, 1 - ry); map.userData.top = 0;
+    panels[idx].clones = (panels[idx].clones || []).concat(map);
+  } else {
+    map = photoBase.clone(); photoClones.push(map);
+    const region = photoAtlasRegion(idx, w/h);
+    map.repeat.set(...region.repeat); map.offset.set(...region.offset);
+  }
+  map.anisotropy = 8; map.generateMipmaps = true; map.minFilter = THREE.LinearMipmapLinearFilter;
+  // the picture glows by itself; on top of it the glass surface still reflects the studio (crisp, not refracted)
+  const po = { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 };
+  // Restore the original optical window, not an alpha-cutout text overlay.
+  // Its dark, reflective surface supplies contrast and occlusion inside the
+  // transmission buffer; the slab refracts those surfaces over the black void.
+  // The code canvas itself still has no navy fill.
+  return new THREE.MeshPhysicalMaterial({ ...po, color: 0x000000, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: kind === 0 ? 1.25 : 1.1,
+    metalness: 0, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03, specularIntensity: 0.9, envMapIntensity: 1.0 });
+}
+
+const plates = [];
+function addPlate(opts){
+  const { size, center, parent } = opts;
+  // Half the source bevel width, but keep its smooth optical normals: studio
+  // streaks still bend around the edge instead of forming a flat border.
+  const r = Math.min(0.0325, Math.min(...size)*0.16);
+  const geo = new RoundedBoxGeometry(size[0], size[1], size[2], mobile ? 2 : 4, r);
+  const mesh = new THREE.Mesh(geo, opts.glass || glassMaterial(Math.min(...size)*1.1));
+  // the window: a picture or code, sealed in the middle of the slab
+  let thin = 0; for (let k=1;k<3;k++) if (size[k] < size[thin]) thin = k;
+  const others = [0,1,2].filter(k => k !== thin);
+  const w = size[others[0]] - 0.17, h = size[others[1]] - 0.17;
+  if (w > 0.08 && h > 0.08){
+    // the window sits on both big faces of the slab, a hair above the glass: sharp, framed by the bevelled glass rim
+    const M = 0.17, fw = thin === 0 ? size[2] - M : size[0] - M, fh = thin === 1 ? size[2] - M : size[1] - M;
+    const mat = contentMaterial(opts.kind, opts.idx, fw, fh, opts.storyIndex), geo = new THREE.PlaneGeometry(fw, fh), off = size[thin]/2 + 0.004;
+    for (const sgn of [1, -1]){
+      const win = new THREE.Mesh(geo, mat);
+      if (thin === 0){ win.rotation.y = sgn > 0 ? Math.PI/2 : -Math.PI/2; win.position.x = sgn*off; }
+      if (thin === 1){ win.rotation.x = sgn > 0 ? -Math.PI/2 : Math.PI/2; win.position.y = sgn*off; }
+      if (thin === 2){ win.rotation.y = sgn > 0 ? 0 : Math.PI; win.position.z = sgn*off; }
+      mesh.add(win);
+    }
+  }
+  mesh.userData = opts; parent.add(mesh); (opts.list || plates).push(mesh);
+  return mesh;
+}
+boxes.forEach((b, i) => {
+  const c = [(b[0]+b[3])/2, (b[1]+b[4])/2, (b[2]+b[5])/2];
+  const size = [b[3]-b[0]-GAP, b[4]-b[1]-GAP, b[5]-b[2]-GAP];
+  let thin = 0; for (let k=1;k<3;k++) if (size[k] < size[thin]) thin = k;
+  const open = [];
+  for (let k=0;k<3;k++){ if (Math.abs(b[k] + H) < 1e-6) open.push([k, -1]); if (Math.abs(b[k+3] - H) < 1e-6) open.push([k, 1]); }
+  const pick = open.find(o => o[0] === thin) || open[0];
+  const push = pick ? [0,1,2].map(k => k === pick[0] ? pick[1] : 0) : null;
+  const jut = push && R() < 0.5 ? rnd(0.08, 0.32) : 0;
+  const home = c.map((v, k) => v + (push ? push[k]*jut : 0));
+  const dir = norm([rnd(-1,1), rnd(-1,1), rnd(-1,1)]);
+  if (push && R() < 0.06 && size[0]*size[1]*size[2] < 0.12) return;          // a couple missing: a glimpse of the core
+  addPlate({ size, center: c, parent: cube, home, push, kind: 0, idx: (i*3 + (i >> 1)) % 8,
+    from: home.map((v, k) => v + dir[k]*rnd(4, 7)), spinAx: new THREE.Vector3(...norm([rnd(-1,1), rnd(-1,1), rnd(-1,1)])), spin: rnd(1.5, 3.5), delay: rnd(0, 0.9),
+    off: [0,0,0], hov: 0, float: false });
+});
+for (let i = 0; i < (mobile ? 8 : CONFIG.floaters); i++){
+  const r = rnd(2.9, 4.1), th = (i/CONFIG.floaters)*Math.PI*2 + rnd(-0.15, 0.15), ph = rnd(-0.75, 0.75);
+  const size = [rnd(0.4, 0.8), rnd(0.14, 0.26), rnd(0.06, 0.09)];
+  addPlate({ size, parent: world, home:[0,0,0], push: null, kind: 0, idx: (i*5) % 8,
+    from: [Math.cos(th)*r*3, ph*r*2, Math.sin(th)*r*3], spinAx: new THREE.Vector3(...norm([rnd(-1,1), rnd(-1,1), rnd(-1,1)])), spin: rnd(1, 2), delay: rnd(0.8, 1.6),
+    off:[0,0,0], hov:0, float:true, th, r, ph, tumble: new THREE.Vector3(...norm([rnd(-1,1), rnd(-1,1), rnd(-1,1)])), tumbleSp: rnd(0.12, 0.3) });
+}
+/* ---------------- scroll: the cube bursts, then we fly through a drift of code plates ---------------- */
+let seed2 = 7; const R2 = () => (seed2 = (seed2*48271) % 2147483647)/2147483647, r2 = (a,b) => a + R2()*(b-a);
+const align = [new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), -Math.PI/2),   // thin x -> z
+               new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI/2),    // thin y -> z
+               new THREE.Quaternion()];
+const flightEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const flightTilt = new THREE.Quaternion(), flightFacing = new THREE.Quaternion(), flightLocal = new THREE.Quaternion();
+function faceFlight(pos, thin, roll, phase, time){
+  const pose = cardFlightRotation(camera.position.z - pos.z, phase, roll, time);
+  flightTilt.setFromEuler(flightEuler.set(pose.pitch, pose.yaw, pose.roll));
+  return flightFacing.copy(camera.quaternion).multiply(flightTilt).multiply(align[thin]);
+}
+// every free plate is a body: a sphere around its big face, for the collision pass
+const bigR = size => { const a = size.slice().sort((x, y) => y - x); return 0.5*Math.hypot(a[0], a[1])*0.9; };
+const placed = [];                                          // [x, y, z, r] of targets already taken
+const fits = (x, y, z, r) => placed.every(o => Math.hypot(o[0] - x, o[1] - y, o[2] - z) > o[3] + r + 0.08);
+for (const m of plates){
+  const p = m.userData; p.rad = bigR(p.size); p.sep = new THREE.Vector3(); p.wp = new THREE.Vector3();
+  let thin = 0; for (let k=1;k<3;k++) if (p.size[k] < p.size[thin]) thin = k;
+  p.flightThin = thin;
+  if (p.float) continue;
+  let best = null;
+  for (let tries = 0; tries < 40 && !best; tries++){
+    const h = norm([p.home[0] + r2(-0.4, 0.4), p.home[1] + r2(-0.4, 0.4), 0.001]);
+    const b = p.kind === 0
+      ? (() => { const r = r2(1.8, 3.6); return [h[0]*r*1.25, h[1]*r*0.8, r2(-10, 2.5)]; })()     // code: joins the corridor
+      : (() => { const r = r2(7, 11);    return [h[0]*r, h[1]*r*0.7, r2(-4, 5)]; })();            // pictures: thrown out of frame
+    if (fits(...b, p.rad) || tries === 39) best = b;
+  }
+  placed.push([...best, p.rad]); p.burst = best;
+  p.flightRoll = r2(-0.5, 0.5); p.burstPh = r2(0, 6.28);
+}
+const field = [];
+{
+  // Same physical glass and polished content windows as the assembled cube.
+  // Two shared materials preserve each slab thickness without per-card probes.
+  const N = CODE_HISTORY.length, codeGlass = glassMaterial(.13*1.1), photoGlass = glassMaterial(.14*1.1);
+  for (let i = 0; i < N; i++){
+    const width = r2(0.9, 1.55); r2(0.5, 0.95); // retain the existing placement RNG stream
+    const size = [width, (width-.17)/ (512/270) + .17, 0.13], rad = bigR(size), z = -3 - (i/(N-1))*35 + r2(-0.25, 0.25);
+    let th = 0, r = 0;
+    for (let tries = 0; tries < 40; tries++){
+      th = r2(0, 6.28); r = r2(1.3, 3.2);
+      if (fits(Math.cos(th)*r*1.25, Math.sin(th)*r*0.8, z, rad)) break;
+    }
+    placed.push([Math.cos(th)*r*1.25, Math.sin(th)*r*0.8, z, rad]);
+    addPlate({ size, parent: scene, kind: 0, idx: (i*3) % 8, storyIndex: i, glass: codeGlass, list: field,
+      z, th, r, roll: r2(-0.45, 0.45), ph: r2(0, 6.28), inAt: r2(0.05, 0.3), rad, sep: new THREE.Vector3(), wp: new THREE.Vector3() });
+  }
+  // Second stretch: all 20 pictures in numeric order on desktop and mobile.
+  // Keep the same flight length and glass rim, with a full 16:9 picture window.
+  const photoCount = GLASS_CARD_IMAGES.length;
+  for (let i = 0; i < photoCount; i++){
+    const width = r2(1.2, 1.9), size = [width, (width - .17)/PHOTO_ASPECT + .17, .14];
+    const rad = bigR(size), z = -58 - (i/photoCount)*45 + r2(-0.5, 0.5);
+    let th = 0, r = 0;
+    for (let tries = 0; tries < 40; tries++){
+      th = r2(0, 6.28); r = r2(1.5, 3.4);
+      if (fits(Math.cos(th)*r*1.25, Math.sin(th)*r*0.8, z, rad)) break;
+    }
+    placed.push([Math.cos(th)*r*1.25, Math.sin(th)*r*0.8, z, rad]);
+    addPlate({ size, parent: scene, kind: 1, idx: i, glass: photoGlass, list: field, photo: true,
+      z, th, r, roll: r2(-0.35, 0.35), ph: r2(0, 6.28), rad, sep: new THREE.Vector3(), wp: new THREE.Vector3() });
+  }
+}
+
+// inner plates land first, the outer shell closes over them; loose plates arrive once the cube is whole
+{ const inner = plates.filter(m => !m.userData.float).sort((a, b) => Math.hypot(...a.userData.home) - Math.hypot(...b.userData.home));
+  inner.forEach((m, i) => m.userData.delay = 0.55*i/(inner.length - 1));
+  plates.filter(m => m.userData.float).forEach(m => m.userData.delay += 1.5); }
+const bodies = plates.concat(field);
+
+// code textures are shared by several plates: keep every clone in sync
+panels.forEach(p => { const orig = p.tex; p.tex = { set needsUpdate(v){ orig.needsUpdate = v; (p.clones || []).forEach(c => c.needsUpdate = v); } }; });
+
+/* ---------------- stars: moving depth field, a few twinkle now and then ---------------- */
+const stars = (() => {
+  const n = mobile ? STAR_COUNTS.mobile : STAR_COUNTS.desktop, pos = new Float32Array(n*3), ph = new Float32Array(n), sz = new Float32Array(n);
+  for (let i = 0; i < n; i++){
+    const a = Math.random()*Math.PI*2, r = 6 + Math.pow(Math.random(), 0.7)*20;       // kept off the flight path
+    pos[i*3] = Math.cos(a)*r; pos[i*3+1] = Math.sin(a)*r*0.7; pos[i*3+2] = 14 - Math.random()*205;
+    ph[i] = Math.random(); sz[i] = 1.4 + Math.pow(Math.random(), 3)*2.2;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aPhase', new THREE.BufferAttribute(ph, 1));
+  g.setAttribute('aSize', new THREE.BufferAttribute(sz, 1));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uPR: { value: 1 }, uCameraZ: { value: camera.position.z } },
+    vertexShader: STAR_VERTEX_SHADER,
+    fragmentShader: `
+      varying float vA;
+      void main(){ float r = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.05, r); gl_FragColor = vec4(vec3(1.0), a*vA); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const pts = new THREE.Points(g, m); pts.frustumCulled = false; pts.renderOrder = -5; scene.add(pts);
+  return m;
+})();
+
+/* ---------------- the eye: waits on the flight axis; only its pupil opens onto the next scene ---------------- */
+const EYE = { z: -178, r: 5, iris: 0.52 };
+// Enter a genuinely dark pupil; the next portal only reveals after this crossing.
+const destinationImg = document.createElement('canvas'); destinationImg.width = destinationImg.height = 1;
+destinationImg.getContext('2d').fillStyle = '#000000'; destinationImg.getContext('2d').fillRect(0, 0, 1, 1);
+const destinationTex = new THREE.Texture(destinationImg);
+destinationTex.colorSpace = THREE.SRGBColorSpace; destinationTex.anisotropy = 4;
+const irisTex = new THREE.Texture();
+irisTex.colorSpace = THREE.SRGBColorSpace;
+irisTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const eyeMat = createEyeMaterial(destinationTex, EYE.iris, irisTex);
+eyeMat.transparent = true;
+const destinationScreen = createDestinationScreen(destinationTex); scene.add(destinationScreen);
+const eye = new THREE.Mesh(new THREE.SphereGeometry(EYE.r, 96, 64), eyeMat);
+eye.position.set(0, 0, EYE.z); eye.visible = false; scene.add(eye);
+const gaze = { x: 0, y: 0, tx: 0, ty: 0, next: 0 };
+const pupilCentre = new THREE.Vector3();
+let pupilValue = .1;
+let reportedPupilCovered = false;
+renderer.domElement.dataset.storyCards = String(CODE_HISTORY.length);
+
+
+/* ---------------- post: bloom on the highlights ---------------- */
+const composer = new EffectComposer(renderer);
+const scenePass = new RenderPass(scene, camera); composer.addPass(scenePass);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), CONFIG.bloom, 0.5, 1.0);
+{ const set = bloom.setSize.bind(bloom); bloom.setSize = (w, h) => set(Math.round(w/2), Math.round(h/2)); }
+composer.addPass(bloom);
+const zoomBlur = createZoomBlur(); composer.addPass(zoomBlur);
+const lens = createLensPass(); composer.addPass(lens);
+composer.addPass(new OutputPass());
+inTransmission = rt => !!rt && rt !== composer.renderTarget1 && rt !== composer.renderTarget2;
+
+
+/* ---------------- interaction ---------------- */
+const mouse = { x:0, y:0, tx:0, ty:0, on:0, px:-9999, py:-9999 };
+addEventListener('pointermove', e => { mouse.tx = (e.clientX/innerWidth)*2 - 1; mouse.ty = 1 - (e.clientY/innerHeight)*2; mouse.on = 1; mouse.px = e.clientX; mouse.py = e.clientY;
+  if (window.NodalHost) window.NodalHost.pointer = {x:mouse.tx,y:mouse.ty,active:true}; });
+document.addEventListener('pointerleave', () => { mouse.on = 0; mouse.px = mouse.py = -9999;
+  if (window.NodalHost) window.NodalHost.pointer = {x:0,y:0,active:false}; });
+function resize(){
+  camera.aspect = innerWidth/innerHeight;
+  camZ0 = 8*Math.max(1, 1.3/camera.aspect);
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  if (journey) { journey.capturePreview(camera.aspect); eyeMat.uniforms.uImageAspect.value = journey.previewAspect; destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect; }
+}
+let camZ0 = 8;
+let journey;
+let resizePending = false;
+// Resizing clears the canvas. Queue it until the next frame can redraw it.
+addEventListener('resize', () => { resizePending = true; }); resize();
+
+const tmp = new THREE.Vector3(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), qa = new THREE.Quaternion(), qc = new THREE.Quaternion(), va = new THREE.Vector3();
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; scrollTo(0, 0);
+const hint = document.getElementById('hint');
+let gprog = 0, jprog = 0;
+let eyeAppearedAt = null;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+if (!window.NodalHost) document.getElementById('track').style.height = `${(GLASS_SCROLL_SCREENS + 1)*100}vh`;
+const scrollP = () => window.NodalHost ? window.NodalHost.progress : glassScrollProgress(scrollY/innerHeight);
+let opticalSource = null, opticalSettings = LENS;
+let t0 = performance.now(), last = 0;
+const dprMax = Math.min(devicePixelRatio || 1, mobile ? 1.25 : CONFIG.quality); let dpr = dprMax;
+let pendingDpr = dpr;
+const perf = { last: performance.now(), acc: 0, n: 0, slow: 0 };
+function prepareFrame(){
+  // Resize all render buffers before drawing, never after presenting a frame.
+  if (pendingDpr !== dpr){
+    dpr = pendingDpr;
+    renderer.setPixelRatio(dpr); composer.setPixelRatio(dpr);
+  }
+  if (resizePending){ resizePending = false; resize(); }
+}
+function frame(){
+  prepareFrame();
+  const now = (window.__T != null) ? window.__T : (performance.now() - t0)/1000;
+  const dt = Math.min(0.05, Math.max(0, now - last)); last = now;
+  if (window.NodalHost?.pointer) { const cursor = window.NodalHost.pointer; mouse.tx = cursor.x; mouse.ty = cursor.y; mouse.on = cursor.active ? 1 : 0; mouse.px = (cursor.x+1)/2*innerWidth; mouse.py = (1-cursor.y)/2*innerHeight; }
+  if (window.__M){ mouse.tx = window.__M[0]; mouse.ty = window.__M[1]; mouse.on = 1; mouse.px = (mouse.tx + 1)/2*innerWidth; mouse.py = (1 - mouse.ty)/2*innerHeight; }
+  const k = 1 - Math.exp(-dt*2.2);
+  mouse.x += (mouse.tx*mouse.on - mouse.x)*k; mouse.y += (mouse.ty*mouse.on - mouse.y)*k;
+
+  // The host already smooths the whole shot through Lenis. Do not introduce a
+  // second easing layer in this iframe; standalone native scroll retains easing.
+  const oldGlass = gprog, oldJourney = jprog;
+  gprog = window.__P != null ? window.__P : window.NodalHost ? scrollP() : gprog + (scrollP() - gprog)*(1 - Math.exp(-dt*4));
+  jprog = window.NodalHost?.journey || 0;
+  const scrollSpeed = window.NodalHost ? window.NodalHost.speed : dt > 0 ? (Math.abs(gprog - oldGlass)*GLASS_SCROLL_SCREENS + Math.abs(jprog - oldJourney)*JOURNEY_SCROLL_SCREENS)/dt : 0;
+  if (window.NodalHost?.optics && opticalSource !== window.NodalHost.optics) {
+    opticalSource = window.NodalHost.optics; opticalSettings = normalizeLens(opticalSource);
+  }
+  applyLensSettings(lens.uniforms, opticalSettings, reducedMotion.matches);
+  lens.uniforms.uAmount.value = lensAmount(lens.uniforms.uAmount.value, scrollSpeed, dt, reducedMotion.matches, opticalSettings);
+  lens.uniforms.uAspect.value = innerWidth/innerHeight;
+  if (jprog > .00001) {
+    const shot = journey.update(jprog, now, mouse, renderer.getPixelRatio());
+    scenePass.scene = shot.scene; scenePass.camera = shot.camera;
+    bloom.strength = shot.bloom; bloom.enabled = shot.bloom > 0; zoomBlur.uniforms.uStrength.value = shot.blur; zoomBlur.enabled = shot.blur > .00005;
+    composer.render(); finishFrame(); return;
+  }
+  journey?.setActive(false);
+  scenePass.scene = scene; scenePass.camera = camera; bloom.strength = CONFIG.bloom; bloom.enabled = true;
+  updatePanels(now);
+  stars.uniforms.uTime.value = now; stars.uniforms.uPR.value = renderer.getPixelRatio();
+  const pa = Math.min(1, gprog*1.5), pb = clamp((gprog - 2/3)*3, 0, 1);  // part A: cube, code, pictures; part B: the eye
+  const prog = Math.min(1, pa*2);                                      // the code part lives in the first half of part A
+  const burst = s5(0.0, 0.3, prog), fly = glassFlightProgress(pa);   // observe the breakup first, then gently move forward
+  hint.style.opacity = (0.55*(1 - clamp(gprog*24, 0, 1))).toFixed(3);
+  camera.position.set(Math.sin(fly*5.5)*0.35*fly, Math.cos(fly*4.3)*0.22*fly - 0.22*fly, lerp(camZ0, -112, fly));
+  camera.rotation.set(mouse.y*0.06*burst, -mouse.x*0.1*burst, Math.sin(fly*3.2)*0.06, 'YXZ');
+
+
+  // The eye waits on the flight axis. It emerges from darkness as we approach,
+  // locks its gaze, and the same camera continues straight through the pupil.
+  // Begin emerging another half viewport earlier, while the photo flight ends.
+  // The pupil dive keeps its original timing and camera path.
+  const arrive = eyeArrival(gprog);
+  eye.visible = gprog > EYE_ARRIVAL.start;
+  eyeAppearedAt = pupilAppearanceTime(eyeAppearedAt, arrive, now);
+  eyeMat.opacity = arrive;
+  eyeMat.roughness = lerp(.24, .105, arrive);
+  eyeMat.envMapIntensity = .75*arrive;
+  eyeMat.uniforms.uT.value = now;
+  eye.position.set(0, 0, EYE.z);
+  // Cursor following remains active when paused in front of the eye. Only
+  // moving scroll and the final pupil approach deliberately lock the gaze.
+  const aligning = window.NodalHost ? s5(.06, .55, scrollSpeed) : s5(.003, .025, Math.abs(scrollP() - gprog));
+  const look = (1 - s5(.52, .66, pb))*(1 - aligning);
+  const kg = 1 - Math.exp(-dt*9);
+  gaze.x += (mouse.x*.4*look - gaze.x)*kg; gaze.y += (mouse.y*.26*look - gaze.y)*kg;
+  eye.rotation.set(-gaze.y, gaze.x, 0);
+  const dive = s5(0.52, 0.95, pb);
+  eyeMat.uniforms.uDive.value = dive;
+  if (pb > 0){
+    const c = s5(0, 0.3, pb);
+    const zHold = lerp(-112, EYE.z + 24, s5(0.0, 0.5, pb));
+    const zIn = EYE.z + EYE.r + 0.018;
+    const d = s5(0.52, 0.975, pb);
+    camera.position.set(camera.position.x*(1 - c), camera.position.y*(1 - c), lerp(zHold, zIn, d*d*(3 - 2*d)*0.4 + d*0.6));
+    camera.rotation.set(camera.rotation.x*(1 - c), camera.rotation.y*(1 - c), camera.rotation.z*(1 - c), 'YXZ');
+  }
+  camera.updateMatrixWorld(); eye.updateMatrixWorld();
+  pupilCentre.set(0, 0, EYE.r).applyMatrix4(eye.matrixWorld).project(camera);
+  const proximity = mouse.on ? pupilPointerProximity({ x: mouse.tx, y: mouse.ty }, pupilCentre, camera.aspect) : 1;
+  const pupilTarget = animatedPupilRadius(gprog, eyeAppearedAt === null ? 0 : now-eyeAppearedAt, proximity);
+  pupilValue = arrive <= .01 ? .1 : smoothPupilRadius(pupilValue, pupilTarget, dt);
+  const pupil = pupilValue;
+  eyeMat.uniforms.uPupil.value = pupil;
+  renderer.domElement.dataset.pupilRadius = pupil.toFixed(3);
+  renderer.domElement.dataset.pupilCentre = `${pupilCentre.x.toFixed(3)},${pupilCentre.y.toFixed(3)}`;
+  stars.uniforms.uCameraZ.value = camera.position.z;
+  updateHistoryPanels(now);
+  eyeMat.uniforms.uResolution.value.set(innerWidth*renderer.getPixelRatio(), innerHeight*renderer.getPixelRatio());
+  // Never replace the whole eye with the landscape: hand off only when the
+  // projected pupil itself extends beyond all four viewport corners.
+  const pupilRadius = EYE.iris*pupil;
+  const pupilZ = EYE.z + EYE.r*Math.sqrt(1 - pupilRadius*pupilRadius);
+  const pupilPixels = EYE.r*pupilRadius/Math.max(.01, camera.position.z - pupilZ)*innerHeight/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2));
+  const coverage = pb > 0 ? pupilPixels/(Math.hypot(innerWidth, innerHeight)*.5) : 0;
+  renderer.domElement.dataset.pupilCoverage = coverage.toFixed(3);
+  // Actual projected coverage, including portrait aspect/pupil animation.
+  // The host may finish a covered passage only AFTER every corner is black.
+  const covered = coverage >= 1.18;
+  if (covered !== reportedPupilCovered) { reportedPupilCovered = covered; window.NodalHost?.send('pupil-covered', { value: covered }); }
+  eyeMat.uniforms.uPreviewBlend.value = pupilPreviewBlend(coverage);
+  destinationScreen.visible = coverage > 1.02;
+  destinationScreen.material.uniforms.uAlpha.value = s5(1.02, 1.18, coverage);
+  destinationScreen.material.uniforms.uAspect.value = camera.aspect;
+  zoomBlur.uniforms.uStrength.value = .038*s5(.58, .81, pb)*(1 - s5(.965, 1, pb));
+  zoomBlur.enabled = zoomBlur.uniforms.uStrength.value > .00005;
+
+  // a three-quarter view that leans towards the cursor
+  cube.rotation.set(0.46 - mouse.y*0.3 + Math.sin(now*0.31)*0.04, -0.62 + mouse.x*0.45 + Math.sin(now*0.23)*0.06, 0, 'XYZ');
+  cube.position.y = Math.sin(now*0.6)*0.04;
+  world.rotation.y = mouse.x*0.12; world.rotation.x = -mouse.y*0.06;
+  cube.updateMatrixWorld(); world.updateMatrixWorld();
+  qc.copy(cube.quaternion).invert();
+  const rot = now*0.02;                                        // the whole corridor turns slowly, as one
+
+  for (const m of plates){
+    const p = m.userData;
+    const ta = window.NodalHost ? 1 : clamp((now - 0.3 - p.delay)/(CONFIG.assemble - 0.9), 0, 1), e = 1 - Math.pow(1 - ta, 3);
+    let pos = p.home.slice();
+    // cube plates converge radially, all on one scale: gaps only shrink evenly, so nothing crosses; spin is spent while still far out
+    q.setFromAxisAngle(p.spinAx, p.float ? (1 - e)*p.spin : (1 - s5(0, 0.5, e))*p.spin);
+    if (p.float){
+      const th = p.th + now*0.05;
+      pos = [Math.cos(th)*p.r, p.ph*p.r*0.6 + Math.sin(now*0.4 + p.th*3)*0.12, Math.sin(th)*p.r];
+      q2.setFromAxisAngle(p.tumble, now*p.tumbleSp + p.th*2); q.premultiply(q2);
+    }
+    const f = 1 + 4.5*(1 - e)*(1 - e);
+    pos = p.float ? pos.map((v, i) => lerp(p.from[i], v, e) + p.off[i]) : pos.map((v, i) => v*f + p.off[i]);
+    m.position.set(...pos); m.quaternion.copy(q);
+    m.scale.setScalar(0.6 + 0.4*s5(0, 0.4, ta));
+    // hover: plates near the cursor slide out through their open side, then settle back
+    let near = 0;
+    if (!p.float && p.push && ta >= 1 && burst < 0.01){
+      tmp.set(...p.home).applyMatrix4(cube.matrixWorld).project(camera);
+      const sx = (tmp.x*0.5 + 0.5)*innerWidth, sy = (0.5 - tmp.y*0.5)*innerHeight;
+      const R0 = innerHeight*0.12; near = Math.exp(-((sx - mouse.px)**2 + (sy - mouse.py)**2)/(R0*R0));
+    }
+    const tgt = p.push ? p.push.map(v => v*near*0.38) : [0,0,0];
+    const kk = 1 - Math.exp(-dt*(near > 0.05 ? 7 : 2.4));
+    p.off = p.off.map((v, i) => v + (tgt[i] - v)*kk);
+    // world-space base position of every plate (the collision pass works there)
+    p.cw = 0;
+    if (p.float){
+      p.wp.copy(m.position).applyMatrix4(world.matrixWorld); p.cw = burst > 0 ? 1 : 0;
+      if (burst > 0){
+        flightLocal.copy(world.quaternion).invert().multiply(faceFlight(p.wp, p.flightThin, p.tumble.z*.3, p.th, now));
+        m.quaternion.slerp(flightLocal, s5(.05, .8, burst));
+      }
+      continue;
+    }
+    p.wp.copy(m.position).applyMatrix4(cube.matrixWorld);
+    if (burst > 0){
+      // 1) the cube expands evenly: every gap grows, nothing can cross; 2) plates fly to their spot and turn to the path
+      const ex = s5(0, 0.45, burst), mv = s5(0.3, 1, burst);
+      p.wp.sub(cube.position).multiplyScalar(1 + 1.5*ex).add(cube.position);
+      const c = Math.cos(rot), s = Math.sin(rot), b = p.burst;
+      va.set(b[0]*c - b[1]*s, b[0]*s + b[1]*c + Math.sin(now*0.5 + p.burstPh)*0.12, b[2]);
+      p.wp.lerp(va, mv);
+      qa.copy(cube.quaternion).multiply(m.quaternion);
+      q2.setFromAxisAngle(p.spinAx, Math.sin(Math.PI*mv)*0.8);
+      qa.slerp(faceFlight(p.wp, p.flightThin, p.flightRoll, p.burstPh, now), mv).multiply(q2);
+      m.quaternion.copy(qc).multiply(qa);
+      p.cw = s5(0.2, 0.5, burst);
+    }
+  }
+  // the corridor: plates drift in from the dark as the cube bursts, then hang around the path
+  for (const m of field){
+    const p = m.userData, inn = p.photo ? 1 - s5(12, 30, camera.position.z - p.z) : s5(p.inAt, p.inAt + 0.25, prog);   // pictures gather as the camera nears
+    m.visible = inn > 0.001; p.cw = m.visible ? inn : 0;
+    if (!m.visible) continue;
+    const th = p.th + rot, r = p.r*(1 + (1 - inn)*3);
+    p.wp.set(Math.cos(th)*r*1.25, Math.sin(th)*r*0.8 + Math.sin(now*0.4 + p.ph)*0.15, p.z + Math.sin(now*0.3 + p.ph)*0.35);
+    m.scale.setScalar(0.4 + 0.6*inn);
+  }
+  // Orient corridor plates before the SAT pass, not after it.
+  for (const m of field) if (m.visible) {
+    const p = m.userData;
+    m.quaternion.copy(faceFlight(p.wp, 2, p.roll, p.ph, now));
+  }
+  resolveGlassBodies(bodies, dt);
+  for (const m of bodies){
+    const p = m.userData;
+    if (!m.visible) continue;
+    va.copy(p.wp);
+    m.position.copy(m.parent.worldToLocal(va));
+  }
+  // anything past the fog wall (30 units) is already invisible: skip it entirely
+  for (const m of bodies){ if (!m.visible) continue; m.getWorldPosition(va); if (va.distanceToSquared(camera.position) > 31*31) m.visible = false; }
+  composer.render();
+  for (const m of bodies) if (!m.userData.list) m.visible = true;       // cube plates & floaters are re-checked next frame
+  finishFrame();
+}
+function finishFrame(){
+  // Keep the same quality governor for glass, energy portal and social scenes.
+  if (window.__T == null){
+    const real = performance.now(); perf.acc += real - perf.last; perf.last = real; perf.n++;
+    if (perf.acc > 1500){
+      const ms = perf.acc/perf.n; perf.acc = 0; perf.n = 0;
+      perf.slow = ms > 22 ? perf.slow + 1 : 0;
+      if (perf.slow >= 2 && dpr > 1){ perf.slow = 0; pendingDpr = Math.max(1, dpr - 0.25); }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// preloader: nothing moves until the pictures are decoded, every shader is compiled and every texture sits on the GPU
+(async () => {
+  const loader = document.getElementById('loader'), bar = loader.querySelector('b'), pct = loader.querySelector('span');
+  const setP = v => {
+    bar.style.transform = `scaleX(${v})`; pct.textContent = Math.round(v*100) + '%';
+    window.NodalHost?.send('loading-progress', { value: v });
+  };
+  const tick = () => new Promise(r => (window.NodalHost ? window.NodalHost.tick : requestAnimationFrame)(() => r()));
+  setP(0.15);
+  const photoAtlas = await createBluePhotoAtlas();
+  const irisImage = new Image(); irisImage.src = '../assets/img/eye-ball-tex.png';
+  await irisImage.decode(); irisTex.image = irisImage; irisTex.needsUpdate = true;
+  photoBase.image = photoAtlas; photoBase.needsUpdate = true;
+  photoClones.forEach(t => { t.image = photoAtlas; t.needsUpdate = true; });
+  destinationTex.needsUpdate = true;
+  journey = await createJourney(renderer);
+  // Compile the entire continuation while hidden, not during the first portal crossing.
+  for (const shot of journey.scenes) {
+    try { await renderer.compileAsync(shot.scene, shot.camera); }
+    catch { renderer.compile(shot.scene, shot.camera); }
+  }
+  eyeMat.uniforms.uDestination.value = journey.preview;
+  destinationScreen.material.uniforms.uImage.value = journey.preview;
+  eyeMat.uniforms.uImageAspect.value = journey.previewAspect;
+  destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect;
+  setP(0.35); await tick();
+  // everything in view at once for the warm-up: all plates at the origin, camera just in front
+  const hidden = bodies.filter(m => !m.visible).concat([eye]); hidden.forEach(m => m.visible = true);
+  bodies.forEach(m => { m.position.set(0, 0, 0); m.scale.setScalar(1); m.frustumCulled = false; });
+  camera.position.set(0, 0, 6);
+  try { await renderer.compileAsync(scene, camera); } catch (e) { renderer.compile(scene, camera); }
+  setP(0.65); await tick();
+  renderer.initTexture(irisTex); renderer.initTexture(destinationTex); renderer.initTexture(photoBase); panels.forEach(p => (p.clones || []).forEach(t => renderer.initTexture(t))); photoClones.forEach(t => renderer.initTexture(t));
+  setP(0.8); await tick();
+  for (let i = 0; i < 3; i++){ composer.render(); await tick(); }          // first real frames: buffers, transmission target, bloom chain
+  bodies.forEach(m => m.frustumCulled = true); hidden.forEach(m => m.visible = false);
+  setP(1); await tick();
+  t0 = performance.now(); last = 0; perf.last = performance.now();
+  if (window.NodalHost) {
+    // Render the assembled, decoded scene before allowing the NODAL light cover to open.
+    frame();
+    document.documentElement.classList.remove('loading');
+    loader.remove(); document.getElementById('hint').remove();
+    window.NodalHost.send('scene-ready');
+  } else {
+    requestAnimationFrame(frame);
+    setTimeout(() => { loader.classList.add('done'); document.documentElement.classList.remove('loading'); }, 250);
+    setTimeout(() => loader.remove(), 1200);
+  }
+})();
+</script>
+</body>
+</html>

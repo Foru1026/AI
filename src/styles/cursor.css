@@ -1,0 +1,102 @@
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  will-change: transform;
+  color: #fff;
+  transition: color 0.24s ease;
+}
+.custom-cursor[data-visible="true"] {
+  opacity: 1;
+}
+.custom-cursor[data-tone="dark"] {
+  color: #000;
+}
+.custom-cursor__icon {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+.custom-cursor__icon img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 30px;
+  height: 30px;
+  filter: invert(0);
+  transition: filter 0.24s ease;
+}
+.custom-cursor[data-tone="dark"] .custom-cursor__icon img {
+  filter: invert(1);
+}
+.custom-cursor__dot,
+.custom-cursor__inner-dot {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  transform-origin: center;
+  transition:
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+.custom-cursor__dot {
+  transform: scale(1);
+  opacity: 1;
+}
+.custom-cursor__inner-dot {
+  transform: scale(0.35);
+  opacity: 0;
+}
+.custom-cursor[data-state="active"] .custom-cursor__dot {
+  transform: scale(2);
+  opacity: 0.35;
+}
+.custom-cursor[data-state="active"] .custom-cursor__inner-dot {
+  transform: scale(1);
+  opacity: 1;
+  transition-delay: 70ms;
+}
+.custom-cursor__mask {
+  flex: none;
+  width: 60px;
+  height: 22px;
+  overflow: hidden;
+}
+.custom-cursor__track {
+  transform: translateY(0);
+}
+.custom-cursor__hint {
+  display: block;
+  height: 22px;
+  color: inherit;
+  font: 400 10px/11px var(--font-mono);
+  letter-spacing: 0;
+  white-space: pre;
+  text-transform: uppercase;
+}
+@media (hover: none), (pointer: coarse) {
+  .custom-cursor {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .custom-cursor,
+  .custom-cursor__icon img,
+  .custom-cursor__dot,
+  .custom-cursor__inner-dot {
+    transition: none;
+  }
+}

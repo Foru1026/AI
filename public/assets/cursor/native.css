@@ -1,0 +1,5 @@
+/* Shared by the host and embedded scenes. Only hide the system cursor after
+   the host has decoded the assets and placed its non-interactive overlay. */
+@media (hover:hover) and (pointer:fine) {
+  html.has-custom-cursor, html.has-custom-cursor * { cursor:none !important; }
+}
