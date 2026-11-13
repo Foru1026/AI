@@ -1,14 +1,14 @@
 import { useImperativeHandle, useLayoutEffect, useRef } from "react";
-import { useContactForm, FIELD_LIMITS } from "../lib/contact.js";
+import { useContactForm, FIELD_LIMITS } from "../../lib/contact.js";
 import {
   footerState,
   footerDelay,
   footerMemory,
   FOOTER_REVEAL_DURATION,
   FOOTER_REVEAL_EASING,
-} from "../lib/timeline.js";
-import { ASSETS } from "../config/assets.ts";
-import { MEDIA, layoutFor } from "../config/breakpoints.ts";
+} from "../../lib/timeline.js";
+import { ASSETS } from "../../config/assets.ts";
+import { MEDIA, layoutFor } from "../../config/breakpoints.ts";
 
 const SOCIAL_LINKS = [
   ["LinkedIn", "https://www.linkedin.com/in/ivan-shmalenko-sean/"],
