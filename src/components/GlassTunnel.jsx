@@ -1,5 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { createTunnelRenderer, tunnelState } from "../webgl/glassTunnel.js";
+import { ASSETS } from "../config/assets.ts";
 
 export default function GlassTunnel({ ref, onReady }) {
   const layer = useRef(null);
@@ -80,7 +81,7 @@ export default function GlassTunnel({ ref, onReady }) {
       <canvas ref={canvas} className="glass-tunnel-canvas" hidden={fallback} />
       {fallback && (
         <div className="glass-tunnel-fallback">
-          <img ref={fallbackImage} src="/assets/glass-tunnel-fallback.png" alt="" onLoad={onReady} onError={onReady} />
+          <img ref={fallbackImage} src={ASSETS.img.tunnelFallback} alt="" onLoad={onReady} onError={onReady} />
           <div ref={fallbackGlow} className="glass-tunnel-fallback__glow" />
         </div>
       )}

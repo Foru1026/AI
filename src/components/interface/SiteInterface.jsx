@@ -7,6 +7,8 @@ import {
   redactedArrives,
   storyLineState,
 } from "../../lib/timeline.js";
+import { ASSETS } from "../../config/assets.ts";
+import { MEDIA } from "../../config/breakpoints.ts";
 import MusicToggle from "../MusicToggle.jsx";
 import ContactFooter from "../ContactFooter.jsx";
 import { Scene, SceneFades, Reveal } from "./Scene.jsx";
@@ -96,7 +98,7 @@ export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
       !ui.visible ||
       !ui.redactedEntrance ||
       !label ||
-      matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      matchMedia(MEDIA.reducedMotion).matches ||
       Number(redactedHeadline.current?.style.opacity ?? 0) < 0.02
     ) {
       return;
@@ -175,7 +177,7 @@ export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
           aria-label="NODDAL — back to top"
           onClick={(e) => go(e, "hero")}
         >
-          <img src="/assets/interface/svg/logo.svg" alt="NODDAL" width="138" height="32" />
+          <img src={ASSETS.interface.logo} alt="NODDAL" width="138" height="32" />
         </a>
         <MusicToggle ref={music} ready={musicReady} />
       </header>
@@ -248,14 +250,14 @@ export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
           >
             <img
               className="callout__connector callout__connector--mobile only-mobile"
-              src="/assets/interface/svg/connector-mobile.svg"
+              src={ASSETS.interface.connectorMobile}
               alt=""
               width="100"
               height="69"
             />
             <img
               className="callout__connector callout__connector--desktop only-desktop"
-              src="/assets/interface/svg/connector-desktop.svg"
+              src={ASSETS.interface.connectorDesktop}
               alt=""
               width="217"
               height="73"

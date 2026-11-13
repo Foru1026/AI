@@ -7,44 +7,23 @@ import {
   FOOTER_REVEAL_DURATION,
   FOOTER_REVEAL_EASING,
 } from "../lib/timeline.js";
+import { ASSETS } from "../config/assets.ts";
+import { MEDIA, layoutFor } from "../config/breakpoints.ts";
 
-const ASSET_DIR = "/assets/footer/";
 const SOCIAL_LINKS = [
   ["LinkedIn", "https://www.linkedin.com/in/ivan-shmalenko-sean/"],
   ["Instagram", "https://www.instagram.com/ubernatural.io/"],
   ["X[Twitter]", "https://x.com/ubernatural"],
 ];
 
-const BRAND = { desktop: ["brand-mark.svg", 26.0047] };
-const RULE_LEFT = {
-  desktop: ["rule-left.svg", 331],
-  tablet: ["rule-left-tablet.svg", 331],
-  mobile: ["rule-left-mobile.svg", 331],
-};
-const RULE_RIGHT = {
-  desktop: ["rule-right-desktop.svg", 310],
-  tablet: ["rule-right-tablet.svg", 340],
-  mobile: ["rule-right-mobile.svg", 334],
-};
-const ARROW = {
-  desktop: ["submit-arrow-desktop.svg", 11.1925],
-  tablet: ["submit-arrow-tablet.svg", 11.1925],
-  mobile: ["submit-arrow-mobile.svg", 11.1925],
-};
-const WORDMARK = {
-  desktop: ["wordmark-desktop.svg", 1440],
-  tablet: ["wordmark-tablet.svg", 768],
-  mobile: ["wordmark-mobile.svg", 390],
-};
-
-function FooterAsset({ desktop, tablet = desktop, mobile = tablet, className = "", alt = "", fluid = false, reveal }) {
+function FooterAsset({ asset, className = "", alt = "", fluid = false, reveal }) {
   const ref = useRef(null);
   useLayoutEffect(() => {
     const el = ref.current;
     const img = el.querySelector("img");
     const update = () => {
-      const asset = innerWidth < 768 ? mobile : innerWidth < 1024 ? tablet : desktop;
-      el.style.setProperty("--footer-asset-scale", String(fluid ? el.clientWidth / asset[1] : 1));
+      const variant = asset[layoutFor(innerWidth)];
+      el.style.setProperty("--footer-asset-scale", String(fluid ? el.clientWidth / variant.width : 1));
     };
     const observer = new ResizeObserver(update);
     observer.observe(el);
@@ -54,13 +33,13 @@ function FooterAsset({ desktop, tablet = desktop, mobile = tablet, className = "
       observer.disconnect();
       img.removeEventListener("load", update);
     };
-  }, [desktop, tablet, mobile, fluid]);
+  }, [asset, fluid]);
 
   return (
     <picture ref={ref} className={"contact-footer__asset " + className} data-footer-reveal={reveal}>
-      <source media="(max-width: 767.98px)" srcSet={ASSET_DIR + mobile[0]} />
-      <source media="(max-width: 1023.98px)" srcSet={ASSET_DIR + tablet[0]} />
-      <img src={ASSET_DIR + desktop[0]} alt={alt} draggable="false" />
+      <source media={MEDIA.mobile} srcSet={asset.mobile.src} />
+      <source media={MEDIA.belowDesktop} srcSet={asset.tablet.src} />
+      <img src={asset.desktop.src} alt={alt} draggable="false" />
     </picture>
   );
 }
@@ -77,7 +56,7 @@ function Field({ name, label, type, autoComplete, required, right, disabled }) {
         maxLength={FIELD_LIMITS[name]}
         disabled={disabled}
       />
-      <FooterAsset {...(right ? RULE_RIGHT : RULE_LEFT)} fluid className="contact-footer__rule" />
+      <FooterAsset asset={right ? ASSETS.footer.ruleRight : ASSETS.footer.ruleLeft} fluid className="contact-footer__rule" />
     </label>
   );
 }
@@ -169,7 +148,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
       inert={!preview}
       onTransitionEnd={onTransitionEnd}
     >
-      <FooterAsset {...BRAND} className="contact-footer__brand" alt="übernatural" reveal="brand" />
+      <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="übernatural" reveal="brand" />
       <div className="contact-footer__scroll">
         <footer ref={content} className="contact-footer" aria-label="Contacts">
           <div className="contact-footer__top">
@@ -260,7 +239,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                   >
                     <span className="contact-footer__submit-label">{form.pending ? "Sending…" : "Submit"}</span>
                     <span className="contact-footer__submit-icon" aria-hidden="true">
-                      <FooterAsset {...ARROW} className="contact-footer__arrow" />
+                      <FooterAsset asset={ASSETS.footer.submitArrow} className="contact-footer__arrow" />
                     </span>
                   </button>
                 </div>
@@ -276,7 +255,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
               <p data-footer-reveal="credit">Made by übernatural. 2026.</p>
               <Legal privacyHref={privacyHref} termsHref={termsHref} />
             </div>
-            <FooterAsset {...WORDMARK} className="contact-footer__wordmark" fluid />
+            <FooterAsset asset={ASSETS.footer.wordmark} className="contact-footer__wordmark" fluid />
           </div>
         </footer>
       </div>

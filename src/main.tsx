@@ -14,4 +14,6 @@ import "./styles/interface.css";
 import "./styles/cursor.css";
 import App from "./App.jsx";
 
-createRoot(document.getElementById("root")).render(<App />);
+const root = document.getElementById("root");
+if (!root) throw new Error("#root is missing from index.html");
+createRoot(root).render(<App />);

@@ -5,7 +5,8 @@ import { Environment } from "@react-three/drei";
 import { EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
 import HeroCamera from "./HeroCamera.jsx";
 import HeroTerrain from "./HeroTerrain.jsx";
-import ServerCube, { MODEL_DIR } from "./ServerCube.jsx";
+import ServerCube from "./ServerCube.jsx";
+import { ASSETS } from "../../config/assets.ts";
 import EnergyBeam from "./EnergyBeam.jsx";
 import PlasmaPortal from "./PlasmaPortal.jsx";
 import { HeroBloom, LateralLens } from "./HeroEffects.jsx";
@@ -58,7 +59,7 @@ export default function HeroScene({ pointer, scroll, motion, optics, onReady }) 
       <directionalLight ref={rimLight} position={[7, 3, -5]} intensity={1.85} color="#59AFFF" />
       <pointLight ref={sideLight} position={[4.2, 1.1, -3.4]} intensity={5.5} distance={8.5} decay={2} color="#59AFFF" />
       <Suspense fallback={null}>
-        <Environment files={`${MODEL_DIR}Studio_Softboxes_3_Point.hdr`} background={false} />
+        <Environment files={ASSETS.environment.studio} background={false} />
         <HeroTerrain pointer={pointer} scroll={scroll} beamContact={beamContact} />
         <ServerCube pointer={pointer} scroll={scroll} />
         <ShaderWarmup onReady={onReady} />

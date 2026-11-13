@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { BloomEffect, BlendFunction, Effect, EffectAttribute } from "postprocessing";
 import { LENS_GLSL, applyLens, lensAmount, lensUniforms } from "../../lib/timeline.js";
+import { MEDIA } from "../../config/breakpoints.ts";
 
 // 1 while the camera is outside the cube, fading to 0 as it flies into the core.
 export const heroWarmth = (page) => 1 - THREE.MathUtils.smoothstep(page, 0.305, 0.475);
@@ -69,7 +70,7 @@ export function HeroBloom({ scroll }) {
 
 export function LateralLens({ motion, optics, scroll }) {
   const { size } = useThree();
-  const reduced = useMemo(() => matchMedia("(prefers-reduced-motion: reduce)"), []);
+  const reduced = useMemo(() => matchMedia(MEDIA.reducedMotion), []);
   const effect = useMemo(
     () =>
       new Effect(

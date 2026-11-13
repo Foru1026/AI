@@ -3,9 +3,9 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { cameraFlight, coreTargetY, currentProfile, portalState, heroCubeScale } from "../../lib/timeline.js";
+import { ASSETS } from "../../config/assets.ts";
 
 const { smoothstep, damp, clamp, lerp } = THREE.MathUtils;
-export const MODEL_DIR = "/assets/";
 const SPACING = 1.72;
 
 const MODULE_POSITIONS = [];
@@ -33,7 +33,7 @@ function stepSpring(spring, x, y, z, delta) {
 }
 
 function ServerModule({ position, pointer, index, scale = 1 }) {
-  const { scene } = useGLTF(`${MODEL_DIR}Server-part-2.glb`);
+  const { scene } = useGLTF(ASSETS.models.serverModule);
   const model = useMemo(() => scene.clone(true), [scene]);
   const group = useRef();
   const spring = useMemo(() => createSpring(position, index), [position, index]);
@@ -84,7 +84,7 @@ function ServerModule({ position, pointer, index, scale = 1 }) {
 }
 
 function CentralCube() {
-  const { scene } = useGLTF(`${MODEL_DIR}Central-cube.glb`);
+  const { scene } = useGLTF(ASSETS.models.centralCube);
   const model = useMemo(() => scene.clone(true), [scene]);
   return <primitive object={model} scale={1.02} />;
 }
@@ -121,5 +121,5 @@ export default function ServerCube({ pointer, scroll }) {
   );
 }
 
-useGLTF.preload(`${MODEL_DIR}Server-part-2.glb`);
-useGLTF.preload(`${MODEL_DIR}Central-cube.glb`);
+useGLTF.preload(ASSETS.models.serverModule);
+useGLTF.preload(ASSETS.models.centralCube);

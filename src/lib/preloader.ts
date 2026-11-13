@@ -1,7 +1,8 @@
 import * as THREE from "three";
 
-export const preloader = window.NoddalPreloader;
-if (!preloader) throw new Error("NODDAL preloader failed to initialize");
+const instance = window.NoddalPreloader;
+if (!instance) throw new Error("NODDAL preloader failed to initialize");
+export const preloader: NoddalPreloader = instance;
 preloader.three(THREE.DefaultLoadingManager);
 
 export const loadTasks = {
@@ -9,4 +10,4 @@ export const loadTasks = {
   tunnel: preloader.task("Tunnel first frame", 1),
   continuation: preloader.task("Glass, images, eye and energy portal", 4),
   ui: preloader.task("Interface fonts", 0.5),
-};
+} satisfies Record<string, PreloaderTask>;

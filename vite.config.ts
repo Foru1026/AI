@@ -1,14 +1,23 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import type { ServerResponse } from "node:http";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+interface ContactPayload {
+  name?: unknown;
+  email?: unknown;
+  phone?: unknown;
+  website?: unknown;
+}
+
 // Local stand-in for the production contact endpoint: validates like the real one and returns { ok, id }.
-function contactMock() {
-  const handler = (req, res, next) => {
+function contactMock(): Plugin {
+  const handler: Connect.NextHandleFunction = (req, res: ServerResponse, next) => {
     if (req.url !== "/api/contact") return next();
-    const reply = (status, body) => {
+    const reply = (status: number, body: Record<string, unknown>) => {
       res.statusCode = status;
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify(body));
@@ -19,7 +28,7 @@ function contactMock() {
       raw += chunk;
     });
     req.on("end", () => {
-      let data;
+      let data: ContactPayload;
       try {
         data = JSON.parse(raw);
       } catch {
@@ -49,4 +58,7 @@ function contactMock() {
 
 export default defineConfig({
   plugins: [react(), contactMock()],
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+  },
 });

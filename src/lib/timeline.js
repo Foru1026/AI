@@ -257,10 +257,7 @@ export function journeyState(v) {
 
 /* ---------- Device ---------- */
 
-export function deviceProfile(width, coarse = false) {
-  return width <= 760 ? "mobile" : width <= 1024 || coarse ? "tablet" : "desktop";
-}
-export const currentProfile = () => deviceProfile(innerWidth, matchMedia("(pointer: coarse)").matches);
+export { deviceProfile, currentProfile } from "../config/breakpoints.ts";
 
 /* ---------- Snapping ---------- */
 

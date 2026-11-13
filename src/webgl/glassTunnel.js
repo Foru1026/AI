@@ -1,6 +1,7 @@
 // Procedural glass-cube tunnel rendered with raw WebGL2: instanced cubes, screen-space
 // refraction, two-level bloom, radial zoom blur and a white-out handoff to the next scene.
 import { HERO_SPLIT } from "../lib/timeline.js";
+import { MEDIA } from "../config/breakpoints.ts";
 
 export const TUNNEL_QUALITY = Object.freeze({
   high: {
@@ -656,7 +657,7 @@ export function createTunnelRenderer(r, e = {}) {
       C = lt,
       M = Rt,
       B = we;
-    const I = matchMedia("(pointer: coarse)").matches,
+    const I = matchMedia(MEDIA.coarsePointer).matches,
       D = Math.min(screen.width, screen.height),
       F = navigator.deviceMemory || 4,
       O = navigator.hardwareConcurrency || 4;
@@ -666,7 +667,7 @@ export function createTunnelRenderer(r, e = {}) {
     const H = e.tier || (location.hash.match(/stats-(high|mid|low)/) || [])[1];
     H && (G = H);
     const U = TUNNEL_QUALITY[G],
-      L = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      L = matchMedia(MEDIA.reducedMotion).matches;
     r.dataset.qualityTier = G;
     const {
         cube: W,

@@ -1,5 +1,8 @@
 import { useEffect, useImperativeHandle, useRef } from "react";
 import { HERO_SPLIT, IMAGE_CLOSE } from "../lib/timeline.js";
+import { postToFrame, readFrameMessage } from "../bridge/datacluster.ts";
+import { ASSETS } from "../config/assets.ts";
+import { MEDIA } from "../config/breakpoints.ts";
 
 const HINTS = Object.freeze({
   explore: "Scroll\nto explore",
@@ -96,19 +99,15 @@ export default function CustomCursor({ ref, ready, frame }) {
   useEffect(() => {
     const cursor = root.current;
     const html = document.documentElement;
-    const fine = matchMedia("(hover: hover) and (pointer: fine)");
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const fine = matchMedia(MEDIA.finePointer);
+    const reduced = matchMedia(MEDIA.reducedMotion);
     const roller = createHintRoller(track.current, hint.current, nextHint.current, () => reduced.matches || !fine.matches);
     let interactive = false;
     let visible = false;
     let decoded = false;
     let unmounted = false;
 
-    const tellFrame = (value) =>
-      frame.current?.contentWindow?.postMessage(
-        { channel: "nodal-datacluster", type: "cursor-enabled", value },
-        location.origin,
-      );
+    const tellFrame = (value) => postToFrame(frame, { type: "cursor-enabled", value });
     const refresh = () => {
       const next = interactive ? "active" : state.current;
       if (cursor.dataset.state !== next) cursor.dataset.state = next;
@@ -144,19 +143,18 @@ export default function CustomCursor({ ref, ready, frame }) {
       }
     };
     const onMessage = (e) => {
-      if (e.origin !== location.origin || e.source !== frame.current?.contentWindow || e.data?.channel !== "nodal-datacluster") {
-        return;
-      }
-      if (e.data.type === "ready") {
+      const message = readFrameMessage(e, frame);
+      if (!message) return;
+      if (message.type === "ready") {
         tellFrame(visible);
         return;
       }
-      if (e.data.type === "cursor-leave") {
+      if (message.type === "cursor-leave") {
         hide();
         return;
       }
-      if (e.data.type !== "cursor-pointer") return;
-      const { x, y, interactive: over, pointerType, tone } = e.data;
+      if (message.type !== "cursor-pointer") return;
+      const { x, y, interactive: over, pointerType, tone } = message;
       if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
       const rect = frame.current.getBoundingClientRect();
       show(rect.left + x * rect.width, rect.top + y * rect.height, over === true, pointerType, tone);
@@ -207,7 +205,7 @@ export default function CustomCursor({ ref, ready, frame }) {
   return (
     <div ref={root} className="custom-cursor" data-visible="false" data-state="explore" data-tone="light" aria-hidden="true">
       <div className="custom-cursor__icon">
-        <img src="/assets/cursor/frame.svg" alt="" width="30" height="30" />
+        <img src={ASSETS.cursor.frame} alt="" width="30" height="30" />
         <span className="custom-cursor__dot" />
         <span className="custom-cursor__inner-dot" />
       </div>

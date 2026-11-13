@@ -1,5 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { createGlitchSound, createMusicController } from "../lib/audio.js";
+import { ASSETS } from "../config/assets.ts";
 
 export default function MusicToggle({ ready, ref }) {
   const music = useRef(null);
@@ -43,8 +44,8 @@ export default function MusicToggle({ ready, ref }) {
 
   return (
     <>
-      <audio ref={music} src="/assets/music/noddal-music.m4a" preload="none" loop aria-hidden="true" />
-      <audio ref={glitch} src="/assets/music/Glitch.mp3" preload="none" aria-hidden="true" />
+      <audio ref={music} src={ASSETS.music.track} preload="none" loop aria-hidden="true" />
+      <audio ref={glitch} src={ASSETS.music.glitch} preload="none" aria-hidden="true" />
       <button
         className="music-toggle"
         type="button"
@@ -63,16 +64,16 @@ export default function MusicToggle({ ready, ref }) {
         }}
       >
         <span className="music-toggle__icon" aria-hidden="true">
-          <img className="music-toggle__frame" src="/assets/music/switch-frame.svg" alt="" draggable="false" />
+          <img className="music-toggle__frame" src={ASSETS.music.switchFrame} alt="" draggable="false" />
           <img
             className="music-toggle__speaker music-toggle__speaker--on"
-            src="/assets/music/speaker-on.svg"
+            src={ASSETS.music.speakerOn}
             alt=""
             draggable="false"
           />
           <img
             className="music-toggle__speaker music-toggle__speaker--off"
-            src="/assets/music/speaker-off.svg"
+            src={ASSETS.music.speakerOff}
             alt=""
             draggable="false"
           />

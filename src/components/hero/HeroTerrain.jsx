@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { CAMERA_FOV, CAMERA_START, HERO_SPLIT, currentProfile } from "../../lib/timeline.js";
+import { MEDIA } from "../../config/breakpoints.ts";
 import {
   ROCK_MODEL,
   SKY_DISTANCE,
@@ -79,7 +80,7 @@ export default function HeroTerrain({ pointer, scroll, beamContact }) {
   }, [layers, probe, beamContact]);
 
   useEffect(() => {
-    const query = matchMedia("(prefers-reduced-motion: reduce)");
+    const query = matchMedia(MEDIA.reducedMotion);
     const sync = () => {
       reduced.current = query.matches;
     };

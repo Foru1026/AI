@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { preloader, loadTasks } from "../lib/preloader.js";
+import { preloader, loadTasks } from "../lib/preloader.ts";
 
 export default function PreloaderBridge({ sceneReady, tunnelReady, glassReady, onReady, onComplete }) {
   const [fontsReady, setFontsReady] = useState(false);

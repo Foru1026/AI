@@ -29,16 +29,16 @@ import {
   sceneFor,
   scrollBy,
 } from "./lib/timeline.js";
-import { preloader, loadTasks } from "./lib/preloader.js";
+import { preloader, loadTasks } from "./lib/preloader.ts";
+import { postToFrame as post, readFrameMessage } from "./bridge/datacluster.ts";
+import { ASSETS } from "./config/assets.ts";
+import { MEDIA } from "./config/breakpoints.ts";
 import GlassTunnel from "./components/GlassTunnel.jsx";
 import HeroScene from "./components/hero/HeroScene.jsx";
 import Atmosphere from "./components/Atmosphere.jsx";
 import SiteInterface from "./components/interface/SiteInterface.jsx";
 import CustomCursor from "./components/CustomCursor.jsx";
 import PreloaderBridge from "./components/PreloaderBridge.jsx";
-
-const CHANNEL = "nodal-datacluster";
-const post = (frame, message) => frame?.contentWindow?.postMessage({ channel: CHANNEL, ...message }, location.origin);
 
 export default function App() {
   const [optics] = useState(loadLens);
@@ -130,32 +130,33 @@ export default function App() {
 
   useEffect(() => {
     const onMessage = (e) => {
-      if (e.origin !== location.origin || e.data?.channel !== CHANNEL || e.source !== frame.current?.contentWindow) return;
-      const { type } = e.data;
+      const message = readFrameMessage(e, frame);
+      if (!message) return;
+      const { type } = message;
       if (type === "ready") syncFrame();
       if (type === "scene-ready") setGlassReady(true);
-      if (type === "loading-progress") loadTasks.continuation.progress(e.data.value);
-      if (type === "pupil-covered") pupilCovered.current = e.data.value === true;
-      if (type === "touch-state") snapper.current?.touch(e.data.value === true);
+      if (type === "loading-progress") loadTasks.continuation.progress(message.value);
+      if (type === "pupil-covered") pupilCovered.current = message.value === true;
+      if (type === "touch-state") snapper.current?.touch(message.value === true);
       if (type === "portal-state" && experience.current) {
-        experience.current.dataset.portalPhase = e.data.phase;
-        if (journey.current > 0 && journey.current < JOURNEY_SPLIT && Number.isFinite(e.data.uiOpacity)) {
-          scaleIntro.current = e.data.uiOpacity;
+        experience.current.dataset.portalPhase = message.phase;
+        if (journey.current > 0 && journey.current < JOURNEY_SPLIT && Number.isFinite(message.uiOpacity)) {
+          scaleIntro.current = message.uiOpacity;
         }
       }
       if (type === "scroll" && interactive.current) {
-        const delta = Number(e.data.delta);
+        const delta = Number(message.delta);
         if (Number.isFinite(delta)) {
           if (lenis.current) {
             snapper.current?.gesture(delta, performance.now());
-            scrollBy(lenis.current, delta, e.data.source);
+            scrollBy(lenis.current, delta, message.source);
           } else {
             window.scrollBy({ top: delta, behavior: "instant" });
           }
         }
       }
       if (type === "error") {
-        console.error("[Datacluster]", e.data.message);
+        console.error("[Datacluster]", message.message);
         if (!interactive.current) preloader.setStatus("[load error · please reload]");
       }
     };
@@ -188,7 +189,7 @@ export default function App() {
     }
     const snap = createSnapper(instance);
     snapper.current = snap;
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const reducedMotion = matchMedia(MEDIA.reducedMotion);
 
     const measure = () => {
       const profile = currentProfile();
@@ -325,7 +326,7 @@ export default function App() {
             <iframe
               ref={frame}
               className="is-current"
-              src="/datacluster/glass.html?embedded=1"
+              src={ASSETS.datacluster}
               title="NODDAL — glass, eye, energy portal and social"
               onLoad={syncFrame}
             />

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { ASSETS } from "../config/assets.ts";
 
 const { degToRad, clamp, smoothstep } = THREE.MathUtils;
 
@@ -195,8 +196,8 @@ export function terrainMotion(page, pointer, reduced = false) {
   };
 }
 
-export const SKY_TEXTURE = "/assets/img/Regular-BG-2_compressed.jpg";
-export const ROCK_MODEL = "/assets/rocks/rock.glb";
+export const SKY_TEXTURE = ASSETS.img.sky;
+export const ROCK_MODEL = ASSETS.models.rock;
 export const SKY_DISTANCE = -76;
 export const SKY_VERTEX = `
   varying vec2 vUv;
