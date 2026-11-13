@@ -1,11 +1,11 @@
 .site-interface {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-interface);
   pointer-events: none;
-  color: #fff;
+  color: var(--color-white);
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: var(--fw-display-roman);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -37,8 +37,8 @@
   display: block;
 }
 .site-interface :focus-visible {
-  outline: 1px solid #fff;
-  outline-offset: 6px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 .site-interface .site-header {
   position: absolute;
@@ -52,8 +52,8 @@
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 0.35s ease,
-    visibility 0.35s;
+    opacity var(--scene-fade) var(--ease-standard),
+    visibility var(--scene-fade);
   pointer-events: none;
 }
 .site-interface .scene.is-active {
@@ -62,7 +62,7 @@
 }
 .site-interface .scene[data-scene="code"].is-active {
   opacity: 1;
-  transition: visibility 0.35s;
+  transition: visibility var(--scene-fade);
 }
 .site-interface .scene[data-scene="code"] > :not(.story-headlines) {
   opacity: var(--interface-opacity, 1);
@@ -74,8 +74,8 @@
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 0.35s ease,
-    visibility 0.35s;
+    opacity var(--scene-fade) var(--ease-standard),
+    visibility var(--scene-fade);
 }
 .site-interface.is-chapter .chapter-nav {
   opacity: var(--interface-opacity, 1);
@@ -87,16 +87,16 @@
 }
 .site-interface [data-reveal] {
   opacity: 0;
-  translate: 0 14px;
+  translate: 0 var(--reveal-shift);
   transition:
-    opacity 0.35s ease,
-    translate 0.35s ease;
+    opacity var(--reveal-out) var(--ease-standard),
+    translate var(--reveal-out) var(--ease-standard);
 }
 .site-interface .is-active [data-reveal] {
   opacity: 1;
   translate: 0 0;
-  transition-duration: 0.65s;
-  transition-delay: calc(var(--i, 0) * 60ms);
+  transition-duration: var(--reveal-in);
+  transition-delay: calc(var(--i, 0) * var(--reveal-stagger));
 }
 .site-interface.is-loading {
   visibility: hidden;
@@ -107,28 +107,7 @@
 }
 .site-interface .scene--features .scene__stage {
   opacity: var(--ui-callouts, 1);
-  transform: translateY(calc(-14px * (1 - var(--ui-callouts, 1))));
-}
-.site-interface .scene--grove .scene__fade,
-.site-interface .scene--grove .scene-text {
-  opacity: var(--ui-streetTitle, 1);
-}
-.site-interface .scene--grove {
-  opacity: 1;
-  transition: visibility 0s 0.65s;
-}
-.site-interface .scene--grove.is-active {
-  opacity: 1;
-  transition-delay: 0s;
-}
-.site-interface .subject-card__backdrop,
-.site-interface .subject-card__content {
-  opacity: 0;
-  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.site-interface .scene--grove.is-active .subject-card__backdrop,
-.site-interface .scene--grove.is-active .subject-card__content {
-  opacity: var(--subject-opacity, 1);
+  transform: translateY(calc(-1 * var(--reveal-shift) * (1 - var(--ui-callouts, 1))));
 }
 @media (prefers-reduced-motion: reduce) {
   .site-interface *,

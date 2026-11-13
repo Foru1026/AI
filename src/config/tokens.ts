@@ -1,24 +1,48 @@
 /**
  * Typed access to the design tokens. Values live only in
- * public/assets/interface/tokens.css; this module lists their names so JS reads them
+ * src/styles/design-system/tokens.css; this module lists their names so JS reads them
  * from the cascade instead of duplicating numbers that would drift.
  */
 export const TOKENS = Object.freeze({
-  color: ["white", "black", "blue", "orange", "avatar-badge"],
+  bp: ["tablet", "desktop", "narrow-max", "short-max"],
+  frame: ["mobile", "tablet", "desktop"],
+  color: [
+    "white", "black", "blue", "orange", "avatar-badge",
+    "glitch-red", "glitch-cyan", "glitch-blue", "text-root", "tunnel-flash",
+  ],
+  surface: ["root", "page", "tunnel"],
   white: ["60", "50", "40", "20", "10"],
-  gradient: ["h1", "h2", "fade"],
+  divider: ["mobile", "v-mobile"],
+  gradient: ["h1", "h2", "fade", "fade-top", "atmosphere", "glitch-flare"],
+  shadow: ["autofill"],
+  glow: ["glitch-cyan", "glitch-blue"],
   font: ["display", "mono"],
   fw: ["display-light", "display-roman", "mono-light", "mono-regular", "mono-medium"],
+  "font-size": ["10", "11", "12", "14", "16", "36", "48"],
   fs: [
     "h1", "h2", "body", "label", "fact", "body-light", "small", "button",
     "h1-mono", "h2-mono", "label-mono", "footnote-mono", "nav-mono", "body-mono",
   ],
-  lh: ["none", "tight", "snug", "small"],
-  ls: ["tight", "body", "mono-wide"],
-  space: ["2", "4", "6", "8", "12", "16", "20", "24", "28", "32", "48", "56", "84"],
-  ease: ["out", "in-out"],
-  dur: ["fast", "base", "slow"],
-  z: ["media", "overlay", "fade", "content", "nav", "header"],
+  lh: ["none", "tight", "snug", "normal", "small", "loose"],
+  ls: ["none", "tight", "body", "mono-wide"],
+  space: ["2", "4", "6", "8", "12", "16", "20", "24", "28", "32", "40", "48", "56", "64", "80", "84"],
+  header: ["pad", "h"],
+  logo: ["w", "h"],
+  container: [
+    "text", "hint", "hint-wide", "lead", "tag", "module-title",
+    "headline", "proposal", "form-column", "footer-min",
+  ],
+  radius: ["none", "sm", "round"],
+  blur: ["card", "widget"],
+  focus: ["ring", "offset"],
+  button: ["h", "bg", "fg", "radius", "hover-filter", "disabled-opacity"],
+  link: ["hover"],
+  "nav-link": ["active"],
+  ease: ["out", "in-out", "standard", "exit"],
+  dur: ["fast", "cursor-tone", "cursor-fade", "cursor-dot", "footer-hide", "footer-reveal"],
+  delay: ["cursor-dot"],
+  reveal: ["shift", "in", "out", "stagger"],
+  z: ["base", "raised", "media", "overlay", "fade", "content", "interface", "nav", "header", "cursor"],
 } as const);
 
 type Group = keyof typeof TOKENS;
@@ -28,29 +52,18 @@ export type TokenName =
   | { [G in Group]: GroupToken<G> }[Group]
   | "--grey-15"
   | "--divider"
-  | "--divider-mobile"
-  | "--divider-v-mobile"
+  | "--mask-hidden"
   | "--gutter"
   | "--block-pad-y"
-  | "--header-pad"
-  | "--header-h"
-  | "--logo-w"
-  | "--logo-h"
   | "--scene-min-h"
+  | "--hero-min-h"
   | "--fade-h"
   | "--stage-ratio"
   | "--chapter-nav-top"
-  | "--blur-card"
-  | "--blur-widget"
   | "--dot"
   | "--marker"
-  | "--scene-fade"
-  | "--media-settle"
-  | "--reveal-shift"
-  | "--reveal-in"
-  | "--reveal-out"
-  | "--reveal-delay"
-  | "--reveal-stagger";
+  | "--nav-link"
+  | "--scene-fade";
 
 /** `var(--token)` for inline styles, so token names stay type-checked. */
 export const cssVar = (name: TokenName, fallback?: string): string =>

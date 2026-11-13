@@ -1,7 +1,8 @@
 /* ==========================================================================
-   NODDAL — Design tokens
-   Source: Figma "Pavel / Nikolay. Awwwards Sprint s.26" → sections 390 / 768 / 1440
-   Every value below comes from the Figma variables & text styles.
+   NODDAL — Design tokens (single source of truth, see docs/DESIGN_SYSTEM.md)
+   Figma: "Pavel / Nikolay. Awwwards Sprint s.26" → frames 390 / 768 / 1440.
+   Values marked (Figma) come from the original tokens file; everything else
+   was measured from the original production stylesheet.
 
    FLUID VALUES — three anchor points
    Sizes hit the exact mockup value at 390, 768 and 1440 and scale linearly
@@ -12,12 +13,36 @@
    ========================================================================== */
 
 :root {
+  /* ---------- Breakpoints & frames ----------
+     CSS variables can't be used inside @media; these mirror the literal
+     queries (max-width: 767.98px / 1023.98px, min-width: 768px / 1024px)
+     and src/config/breakpoints.ts. */
+  --bp-tablet: 768px;
+  --bp-desktop: 1024px;
+  --bp-narrow-max: 374px;           /* phones narrower than the 390 frame */
+  --bp-short-max: 680px;            /* short desktop/tablet viewports (max-height) */
+  --frame-mobile: 390px;
+  --frame-tablet: 768px;
+  --frame-desktop: 1440px;
+
   /* ---------- Colors (Figma: White, Black, Blue, White 40/20/10) ---------- */
   --color-white: #ffffff;
   --color-black: #000000;
   --color-blue: #1f85d9;
   --color-orange: #ff976b;          /* mobile tunnel glow (02.01, Ellipse 310) */
   --color-avatar-badge: #ebe3e1;    /* Figma: "Avatar Bage" */
+
+  /* Glitch channels: [REDACTED] headline + chapter-nav label */
+  --color-glitch-red: #ff3149;
+  --color-glitch-cyan: #7ccaff;
+  --color-glitch-blue: #288cff;
+
+  /* Surfaces behind the WebGL layers */
+  --surface-root: #03070a;          /* <html> background */
+  --surface-page: #01050a;          /* body, hero stage, continuation iframe */
+  --surface-tunnel: #00040d;        /* glass tunnel canvas */
+  --color-text-root: #f3f8fb;       /* default text outside the interface */
+  --color-tunnel-flash: #f5fcff;    /* tunnel fallback white-out */
 
   --white-60: rgba(255, 255, 255, 0.6);
   --white-50: rgba(255, 255, 255, 0.5);
@@ -30,11 +55,48 @@
   --divider-mobile: rgba(255, 255, 255, 0.12); /* white 30% @ layer opacity 40% */
   --divider-v-mobile: rgba(255, 255, 255, 0.24);
 
+  /* ---------- Gradients ---------- */
   /* Gradient text (Figma: "H1 Color", "H2 Color") */
   --gradient-h1: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
   --gradient-h2: linear-gradient(90deg, #ffffff 0%, rgba(169, 169, 169, 0.3) 100%);
-  /* Figma: "Fade" — section top/bottom fades */
+  /* Figma: "Fade" — section bottom fade; top fade is the same ramp reversed */
   --gradient-fade: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
+  --gradient-fade-top: linear-gradient(0deg, #0000, #000);
+  /* Blue core glow + vertical vignette over the hero canvas */
+  --gradient-atmosphere:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(89, 175, 255, 0.055),
+      transparent 25%
+    ),
+    linear-gradient(180deg, #00040838, #0003070a 42%, #0004082e 70%, #0000008c);
+  /* Chromatic flare behind the glitching headline */
+  --gradient-glitch-flare:
+    radial-gradient(
+      ellipse at 35% 50%,
+      #7ccaff40 0%,
+      #288cff10 30%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse at 65% 50%,
+      #288cff60 0%,
+      #288cff18 32%,
+      transparent 65%
+    );
+  /* Fully transparent mask: footer hidden until JS sets --footer-mask */
+  --mask-hidden: radial-gradient(circle, transparent 0, transparent 100%);
+
+  /* ---------- Shadows & glows ---------- */
+  --shadow-autofill: inset 0 0 0 100px #000;   /* paints over UA autofill fill */
+  --glow-glitch-cyan:
+    0 0 3px #7ccaff,
+    0 0 14px #7ccaff99,
+    -9px 0 28px #288cff55;
+  --glow-glitch-blue:
+    0 0 3px #288cff,
+    0 0 16px #288cffaa,
+    9px 0 30px #288cff66;
 
   /* ---------- Font families ---------- */
   --font-display: "Neue Haas Grotesk Display Pro", "Helvetica Neue", Arial, sans-serif;
@@ -47,7 +109,16 @@
   --fw-mono-regular: 400;    /* Geist Mono Regular */
   --fw-mono-medium: 500;     /* Geist Mono Medium */
 
-  /* ---------- Type scale: segment 390 → 768 (segment 768 → 1440 below) ---------- */
+  /* ---------- Type scale: fixed sizes (footer, cursor, captions) ---------- */
+  --font-size-10: 10px;
+  --font-size-11: 11px;
+  --font-size-12: 12px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-36: 36px;
+  --font-size-48: 48px;
+
+  /* ---------- Type scale: fluid roles, segment 390 → 768 (768 → 1440 below) ---------- */
   /*                                                                  390  768  1440 */
   /* H1/H2: below 390px they shrink with the text column (390 − 2×16 = 358px:
      44/358 = 0.1229, 36/358 = 0.10056) so the Figma line breaks never change */
@@ -70,9 +141,12 @@
   --lh-none: 1;
   --lh-tight: 0.9;
   --lh-snug: 1.1;
+  --lh-normal: 1.25;   /* portal hint */
   --lh-small: 1.45;
+  --lh-loose: 1.4;     /* form status */
 
   /* Letter spacing (Figma % → em) */
+  --ls-none: 0;
   --ls-tight: -0.02em;   /* Figma −2%  : H1, H2, Label, Body Light */
   --ls-body: 0.02em;     /* Figma  2%  : Body */
   --ls-mono-wide: 0.2em; /* Figma 20%  : H1 Mono, H2 Mono */
@@ -88,8 +162,11 @@
   --space-24: 24px;
   --space-28: 28px;
   --space-32: 32px;
+  --space-40: 40px;
   --space-48: 48px;
   --space-56: 56px;
+  --space-64: 64px;
+  --space-80: 80px;
   --space-84: 84px;
 
   /* Page gutter: 16 (390) → 28 (768) → 28 (1440) */
@@ -104,6 +181,7 @@
   --logo-h: 32px;
 
   --scene-min-h: 600px;             /* sections never get shorter than this */
+  --hero-min-h: 620px;              /* sticky hero stage */
   --fade-h: 30.69%;                 /* 259 / 844 (mobile) → 200 / 900 on desktop */
 
   /* Artwork "stage" aspect ratio — the box every overlay is pinned to.
@@ -112,41 +190,76 @@
 
   --chapter-nav-top: 104px;         /* chapter nav offset from section top: 104 mobile / 108 tablet */
 
+  /* ---------- Containers (text column widths) ---------- */
+  --container-text: 390px;          /* hero lead, scene titles (= mobile frame) */
+  --container-hint: 358px;          /* portal hint on mobile (390 − 2 × 16) */
+  --container-hint-wide: 340px;     /* portal hint from tablet */
+  --container-lead: 240px;          /* hero lead on desktop */
+  --container-tag: 178px;           /* scene tag on desktop */
+  --container-module-title: 300px;  /* module bar centre column on desktop */
+  --container-headline: 14ch;       /* story headlines */
+  --container-proposal: 682px;      /* footer form block on desktop */
+  --container-form-column: 331px;   /* footer left form column from tablet */
+  --container-footer-min: 770px;    /* footer rows never narrower on tablet */
+
+  /* ---------- Radii ---------- */
+  --radius-none: 0;
+  --radius-sm: 4px;                 /* submit button label + icon */
+  --radius-round: 50%;              /* cursor dots */
+
   /* ---------- Effects ---------- */
   --blur-card: 27px;                /* Figma background blur on subject cards */
   --blur-widget: 12px;              /* social widget */
   --dot: 4px;                       /* little square bullets */
   --marker: 6px;                    /* chapter nav active marker */
+  --focus-ring: 1px solid #fff;
+  --focus-offset: 6px;
 
-  /* ---------- Motion (placeholders for the dev's animation layer) ---------- */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-fast: 200ms;
-  --dur-base: 400ms;
-  --dur-slow: 700ms;
+  /* ---------- Buttons & links ---------- */
+  --button-h: 40px;                 /* 48px desktop, 40px desktop under 680px tall; desktop form fields match */
+  --button-bg: var(--color-white);
+  --button-fg: var(--color-black);
+  --button-radius: var(--radius-sm);
+  --button-hover-filter: brightness(0.9);
+  --button-disabled-opacity: 0.6;
+  --link-hover: var(--white-60);    /* footer links, email */
+  --nav-link: var(--white-40);      /* chapter nav idle */
+  --nav-link-active: var(--color-white);
 
-  /* Scene switching (story mode, components.css §11) */
-  --scene-fade: 900ms;              /* crossfade between scenes */
-  --media-settle: 1800ms;           /* background scale 1.08 → 1 */
-  --reveal-shift: 28px;             /* how far content travels in / out */
-  --reveal-in: 800ms;               /* content entrance duration */
-  --reveal-out: 450ms;              /* content exit duration */
-  --reveal-delay: 300ms;            /* pause before the first element enters */
-  --reveal-stagger: 90ms;           /* gap between elements (style="--i:N") */
+  /* ---------- Motion (measured from the production stylesheet) ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* reveals, cursor dot */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* Figma; reserved */
+  --ease-standard: ease;
+  --ease-exit: ease-out;
+
+  --dur-fast: 200ms;                /* link colour, footer settle */
+  --dur-cursor-tone: 0.24s;         /* cursor light/dark swap */
+  --dur-cursor-fade: 0.3s;
+  --dur-cursor-dot: 0.38s;
+  --delay-cursor-dot: 70ms;
+  --dur-footer-hide: 0.25s;
+  --dur-footer-reveal: 0.75s;
+
+  /* Scene switching (story mode): content fades out fast, enters staggered */
+  --scene-fade: 0.35s;              /* scene + chapter nav crossfade */
+  --reveal-shift: 14px;             /* how far content travels in / out */
+  --reveal-in: 0.65s;               /* content entrance duration */
+  --reveal-out: 0.35s;              /* content exit duration */
+  --reveal-stagger: 60ms;           /* gap between elements (style="--i:N") */
 
   /* ---------- Z-index ---------- */
+  --z-base: 0;
+  --z-raised: 1;
   --z-media: 0;
   --z-overlay: 1;
   --z-fade: 2;
   --z-content: 3;
+  --z-interface: 5;
   --z-nav: 20;
   --z-header: 50;
+  --z-cursor: 100;
 }
 
-/* Breakpoints (CSS variables can't be used inside @media — keep in sync):
-     < 768px      → mobile layout  (390 mockup)
-     768–1023px   → tablet layout  (768 mockup)
-     ≥ 1024px     → desktop layout (1440 mockup)                              */
 @media (min-width: 768px) {
   :root {
     /* Type scale: segment 768 → 1440                                  768  1440 */
@@ -171,5 +284,12 @@
     --block-pad-y: var(--space-28);
     --fade-h: 22.222%;              /* 200 / 900 */
     --stage-ratio: 1.6;             /* 1440 / 900 */
+    --button-h: 48px;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 680px) {
+  :root {
+    --button-h: 40px;
   }
 }
