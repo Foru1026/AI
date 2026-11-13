@@ -344,7 +344,7 @@ export default function App() {
           </Canvas>
         </div>
         <Atmosphere scroll={page} />
-        <SiteInterface ref={ui} ready={phase !== "loading"} musicReady={phase === "done"} onNavigate={navigate} />
+        <SiteInterface ref={ui} ready={phase !== "loading"} onNavigate={navigate} />
         <CustomCursor ref={cursor} ready={phase === "done"} frame={frame} />
         {phase !== "done" && (
           <PreloaderBridge

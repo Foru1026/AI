@@ -38,13 +38,6 @@ export const ASSETS = Object.freeze({
   cursor: {
     frame: `${ROOT}/cursor/frame.svg`,
   },
-  music: {
-    track: `${ROOT}/music/noddal-music.m4a`,
-    glitch: `${ROOT}/music/Glitch.mp3`,
-    switchFrame: `${ROOT}/music/switch-frame.svg`,
-    speakerOn: `${ROOT}/music/speaker-on.svg`,
-    speakerOff: `${ROOT}/music/speaker-off.svg`,
-  },
   footer: {
     brand: sameForAll(footer("brand-mark.svg", 26.0047)),
     ruleLeft: {

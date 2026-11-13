@@ -9,7 +9,6 @@ import {
 } from "../../lib/timeline.js";
 import { ASSETS } from "../../config/assets.ts";
 import { MEDIA } from "../../config/breakpoints.ts";
-import MusicToggle from "../MusicToggle.jsx";
 import ContactFooter from "../ContactFooter.jsx";
 import { Scene, SceneFades, Reveal } from "./Scene.jsx";
 import StoryHeadlines from "./StoryHeadlines.jsx";
@@ -79,14 +78,13 @@ function ModuleScene({ name, active, nodes, glitchRef, metrics }) {
   );
 }
 
-export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
+export default function SiteInterface({ ref, ready, onNavigate }) {
   const root = useRef(null);
   const metrics = useRef({});
   const headlines = useRef({});
   const navLabel = useRef(null);
   const redactedHeadline = useRef(null);
   const footer = useRef(null);
-  const music = useRef(null);
   const lastGlass = useRef(0);
   const [ui, setUi] = useState({ scene: "hero", visible: true });
   const uiKey = useRef("hero:true");
@@ -103,12 +101,7 @@ export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
     ) {
       return;
     }
-    const cancel = runRedactedGlitch([label, redactedHeadline.current].filter(Boolean), redactedHeadline.current);
-    music.current?.playGlitch();
-    return () => {
-      music.current?.stopGlitch();
-      cancel();
-    };
+    return runRedactedGlitch([label, redactedHeadline.current].filter(Boolean), redactedHeadline.current);
   }, [ui.scene, ui.visible, ui.redactedEntrance]);
 
   useImperativeHandle(
@@ -179,7 +172,6 @@ export default function SiteInterface({ ref, ready, musicReady, onNavigate }) {
         >
           <img src={ASSETS.interface.logo} alt="NODDAL" width="138" height="32" />
         </a>
-        <MusicToggle ref={music} ready={musicReady} />
       </header>
 
       <Scene name="hero" className="scene scene--hero" active={is("hero")}>
