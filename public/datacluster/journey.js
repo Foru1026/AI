@@ -189,10 +189,25 @@ export async function createJourney(renderer) {
   const footer={scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(34,1,.025,100),update(){return {};}};
   footer.scene.background=new THREE.Color('#000000');
   const cover=energyCover(),scenes=[portal,footer];
-  const preview=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1,THREE.RGBAFormat);
-  preview.needsUpdate=true;renderer.initTexture(preview);
-  const capturePreview=()=>{}; // The pupil opens onto black, not a raster preview.
-  return {preview,previewAspect:1,capturePreview,scenes,setActive:value=>portal.setActive(value),
+  // The pupil is a live window onto the portal: rendered at reduced size, only
+  // while the eye dive needs it. Half float keeps the energy ring above 1 for bloom.
+  const previewTarget=new THREE.WebGLRenderTarget(2,2,{type:THREE.HalfFloatType});
+  const preview=previewTarget.texture;
+  const previewScale=()=>Math.min(.6,1280/Math.max(1,innerWidth));
+  const capturePreview=()=>{
+    const s=previewScale(),w=Math.max(2,Math.round(innerWidth*s)),h=Math.max(2,Math.round(innerHeight*s));
+    if(previewTarget.width!==w||previewTarget.height!==h)previewTarget.setSize(w,h);
+  };
+  capturePreview();
+  const renderPreview=(amount,time,mouse,pr)=>{
+    capturePreview();
+    portal.preview(amount,time,mouse,Math.max(1,pr*previewScale()));
+    const coverShown=cover.visible;cover.visible=false;
+    const previous=renderer.getRenderTarget();
+    renderer.setRenderTarget(previewTarget);renderer.render(portal.scene,portal.camera);renderer.setRenderTarget(previous);
+    cover.visible=coverShown;
+  };
+  return {preview,get previewAspect(){return innerWidth/innerHeight;},capturePreview,renderPreview,scenes,setActive:value=>portal.setActive(value),
     update(p,time,mouse,pr){
     const {index,local,fill,open,blur}=journeyState(p);
     const shot=scenes[index];
@@ -202,5 +217,5 @@ export async function createJourney(renderer) {
     cover.material.uniforms.uFill.value=fill;cover.material.uniforms.uOpen.value=open;cover.material.uniforms.uTime.value=time;cover.material.uniforms.uAspect.value=innerWidth/innerHeight;
     cover.visible=fill>.001;if(cover.parent!==shot.scene)shot.scene.add(cover);
     return {scene:shot.scene,camera:shot.camera,blur,bloom:shot===portal ? presentation.bloom : 0};
-  },dispose(){portal.dispose();preview.dispose();cover.geometry.dispose();cover.material.dispose();}};
+  },dispose(){portal.dispose();previewTarget.dispose();cover.geometry.dispose();cover.material.dispose();}};
 }

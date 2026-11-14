@@ -29,7 +29,8 @@ export function portalState(progress, reduced = false, elapsed = 0) {
 export function createPortalPlayback() {
   let active=false,elapsed=0,lastTime=null;
   return {
-    setActive(value){if(value!==active){active=value;elapsed=0;lastTime=null;}},
+    // start: entrance time already shown elsewhere (the pupil preview), so it never replays.
+    setActive(value,start=0){if(value!==active){active=value;elapsed=start;lastTime=null;}},
     update(progress,time,reduced=false){
       if(active){
         if(lastTime!==null)elapsed+=Math.max(0,Math.min(.25,time-lastTime));

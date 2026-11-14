@@ -519,7 +519,7 @@ const stars = (() => {
 
 /* ---------------- the eye: waits on the flight axis; only its pupil opens onto the next scene ---------------- */
 const EYE = { z: -178, r: 5, iris: 0.52 };
-// Enter a genuinely dark pupil; the next portal only reveals after this crossing.
+// Black placeholder until the journey's live portal preview replaces it.
 const destinationImg = document.createElement('canvas'); destinationImg.width = destinationImg.height = 1;
 destinationImg.getContext('2d').fillStyle = '#000000'; destinationImg.getContext('2d').fillRect(0, 0, 1, 1);
 const destinationTex = new THREE.Texture(destinationImg);
@@ -714,6 +714,14 @@ function frame(){
   destinationScreen.visible = coverage > 1.02;
   destinationScreen.material.uniforms.uAlpha.value = s5(1.02, 1.18, coverage);
   destinationScreen.material.uniforms.uAspect.value = camera.aspect;
+  // The next world forms inside the pupil as we close in, then the same render
+  // grows to fill the screen; the live portal takes over in exactly that state.
+  const worldOpen = journey && eye.visible ? s5(.42, .86, pb) : 0;
+  eyeMat.uniforms.uOpen.value = worldOpen;
+  if (journey && (worldOpen > .001 || destinationScreen.visible)) {
+    journey.renderPreview(worldOpen, now, mouse, renderer.getPixelRatio());
+    eyeMat.uniforms.uImageAspect.value = destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect;
+  }
   zoomBlur.uniforms.uStrength.value = .038*s5(.58, .81, pb)*(1 - s5(.965, 1, pb));
   zoomBlur.enabled = zoomBlur.uniforms.uStrength.value > .00005;
 

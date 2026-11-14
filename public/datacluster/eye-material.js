@@ -5,7 +5,7 @@ import * as THREE from 'three';
 export function createEyeMaterial(texture, irisRadius, irisTexture) {
   const uniforms = {
     uDestination: { value: texture }, uT: { value: 0 }, uPupil: { value: .32 },
-    uDive: { value: 0 }, uPreviewBlend: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
+    uDive: { value: 0 }, uPreviewBlend: { value: 0 }, uOpen: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
     uImageAspect: { value: 1.6 },
     uIris: { value: irisTexture },
   };
@@ -24,7 +24,7 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       varying vec3 vEyeNormal;
       uniform sampler2D uDestination, uIris;
       uniform vec2 uResolution;
-      uniform float uImageAspect, uT, uPupil, uDive, uPreviewBlend;
+      uniform float uImageAspect, uT, uPupil, uDive, uPreviewBlend, uOpen;
       float eyeHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)))*43758.5453); }
       float eyeNoise(vec2 p) {
         vec2 i = floor(p), f = fract(p); f = f*f*(3.0 - 2.0*f);
@@ -55,19 +55,33 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       vec3 eyeColor = mix(sclera, irisColor, iris);
       float pupil = (1.0 - smoothstep(uPupil - .006, uPupil + .014, er))*front;
       vec2 localUV = .5 + en.xy / (${irisRadius.toFixed(4)}*uPupil)*.5;
+      // Seen through the pupil the world bulges like a lens and slowly turns;
+      // both relax to a flat, still view as the preview grows to screen space.
+      vec2 lensQ = localUV - .5;
+      float lens = 1.0 - uPreviewBlend;
+      float lensSpin = .35*lens*(1.0 - uOpen)*(1.0 - 2.0*dot(lensQ, lensQ));
+      lensQ = mat2(cos(lensSpin), -sin(lensSpin), sin(lensSpin), cos(lensSpin))*lensQ;
+      lensQ *= mix(1.0, .72 + 1.12*dot(lensQ, lensQ), lens);
+      localUV = .5 + lensQ;
       vec2 viewUV = gl_FragCoord.xy / uResolution;
-      vec2 imageUV = destinationUV(mix(localUV, viewUV, uPreviewBlend));
+      // The round pupil shows a square crop of the frame, so the world keeps
+      // its true proportions on portrait and landscape screens alike.
+      vec2 squareSpan = uImageAspect < 1.0 ? vec2(1.0, uImageAspect) : vec2(1.0/uImageAspect, 1.0);
+      vec2 imageUV = mix(.5 + (localUV - .5)*squareSpan, destinationUV(viewUV), uPreviewBlend);
       vec3 beyond = texture2D(uDestination, clamp(imageUV, .001, .999)).rgb;
+      // A thin energy rim traces the pupil while the world is forming inside it.
+      float pupilRim = exp(-pow((er - uPupil)/.016, 2.0))*front*uOpen*(1.0 - uPreviewBlend);
       eyeColor = mix(eyeColor, beyond*.14, pupil);
       diffuseColor.rgb *= eyeColor;
     `).replace('#include <emissivemap_fragment>', `
       #include <emissivemap_fragment>
       totalEmissiveRadiance += irisColor*.1*iris*(1.0 - pupil);
       // The landscape is self-lit only through the pupil. The sclera stays opaque.
-      totalEmissiveRadiance += beyond*mix(.25, 1.0, uDive)*pupil;
+      totalEmissiveRadiance += beyond*mix(.45, 1.0, uDive)*smoothstep(0.0, .35, uOpen)*pupil;
+      totalEmissiveRadiance += vec3(.12, .5, 1.25)*pupilRim*(.6 + .4*sin(uT*2.4 + angle*3.0));
     `);
   };
-  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v4';
+  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v6';
   return material;
 }
 

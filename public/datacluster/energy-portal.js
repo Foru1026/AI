@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { logoShapes, seededRandom } from './particle-logo.js';
-import { PORTAL, createPortalPlayback, portalFraming, portalPointer, sparkEnvelope } from './portal-timeline.js';
+import { PORTAL, clamp, createPortalPlayback, portalFraming, portalPointer, portalState, sparkEnvelope } from './portal-timeline.js';
 import { lightningPaths, energyRingPath } from './lightning-shape.js';
 import { viewportProfile } from './device-profile.js';
 
@@ -302,28 +302,46 @@ export async function createEnergyPortal(renderer) {
   const streams=new THREE.Points(streamsGeometry,pointMaterial(uniforms,true));streams.frustumCulled=false;scene.add(streams);
   const sparks=cursorSparks(uniforms);scene.add(sparks.mesh);
   const playback=createPortalPlayback();let active=false,lastPhase='',lastUi=-1;
+  // How far the pupil preview formed the portal (0..1); the live shot resumes from there.
+  let primed=0,entranceFloor=0;
   renderer.domElement.dataset.portalParticles=String(markGeometry.attributes.position.count);
+  const apply=(state,entrance,time,mouse,pr)=>{
+    const frame=portalFraming(innerWidth/innerHeight);
+    camera.left=-frame.width/2;camera.right=frame.width/2;camera.top=frame.height/2;camera.bottom=-frame.height/2;
+    camera.zoom=state.zoom;camera.updateProjectionMatrix();
+    // The emblem's geometric centre is a gap. Aim into its brightest long
+    // tile during the dive, not into the black space between the three tiles.
+    camera.position.x=PORTAL.centre[0]-.031*state.dive;camera.position.y=PORTAL.centre[1]+.032*state.dive;
+    uniforms.uPointer.value.set(reduced.matches||!hover.matches?0:mouse.x,reduced.matches||!hover.matches?0:mouse.y);
+    uniforms.uReveal.value=state.reveal*entrance;uniforms.uCharge.value=state.charge;uniforms.uAssembly.value=state.assembly;
+    uniforms.uCore.value=state.core;uniforms.uOverload.value=state.overload;
+    uniforms.uTime.value=time;uniforms.uPR.value=pr;uniforms.uZoom.value=state.zoom;uniforms.uMotion.value=reduced.matches?0:1;
+    mark.visible=state.assembly>0&&state.core<1;
+    glow.visible=state.assembly>.65&&state.core<1;
+    ring.visible=rays.mesh.visible=streams.visible=state.charge>0&&state.core<1;
+    core.visible=state.core>0;
+    rays.update(time,rays.mesh.visible,reduced.matches);
+  };
   return {scene,camera,
-    setActive(value){if(value!==active){active=value;playback.setActive(value);sparks.reset();lastUi=-1;}},
+    setActive(value){
+      if(value===active)return;
+      active=value;entranceFloor=value?primed:0;
+      playback.setActive(value,value?primed*PORTAL.introDuration:0);sparks.reset();lastUi=-1;
+    },
+    // The world seen through the pupil: the same entrance, driven by the dive
+    // instead of the clock. No host messages, sparks or playback side effects.
+    preview(amount,time,mouse,pr){
+      primed=clamp(amount);
+      apply(portalState(0,reduced.matches,primed*PORTAL.introDuration),1,time,mouse,pr);
+      sparks.mesh.visible=false;
+    },
     update(p,time,mouse,pr){
-      const state=playback.update(p,time,reduced.matches),frame=portalFraming(innerWidth/innerHeight);
-      camera.left=-frame.width/2;camera.right=frame.width/2;camera.top=frame.height/2;camera.bottom=-frame.height/2;
-      camera.zoom=state.zoom;camera.updateProjectionMatrix();
-      // The emblem's geometric centre is a gap. Aim into its brightest long
-      // tile during the dive, not into the black space between the three tiles.
-      camera.position.x=PORTAL.centre[0]-.031*state.dive;camera.position.y=PORTAL.centre[1]+.032*state.dive;
-      uniforms.uPointer.value.set(reduced.matches||!hover.matches?0:mouse.x,reduced.matches||!hover.matches?0:mouse.y);
+      const state=playback.update(p,time,reduced.matches);
       // A short reversible darkness shutter joins the pupil to the timed
       // reveal on every device, including the desktop covered-passage finish.
-      const entrance=THREE.MathUtils.smoothstep(p,0,.055);
-      uniforms.uReveal.value=state.reveal*entrance;uniforms.uCharge.value=state.charge;uniforms.uAssembly.value=state.assembly;
-      uniforms.uCore.value=state.core;uniforms.uOverload.value=state.overload;
-      uniforms.uTime.value=time;uniforms.uPR.value=pr;uniforms.uZoom.value=state.zoom;uniforms.uMotion.value=reduced.matches?0:1;
-      mark.visible=state.assembly>0&&state.core<1;
-      glow.visible=state.assembly>.65&&state.core<1;
-      ring.visible=rays.mesh.visible=streams.visible=state.charge>0&&state.core<1;
-      core.visible=state.core>0;
-      rays.update(time,rays.mesh.visible,reduced.matches);
+      // After a pupil preview the world is already lit, so it must not blink out.
+      const entrance=Math.max(THREE.MathUtils.smoothstep(p,0,.055),entranceFloor);
+      apply(state,entrance,time,mouse,pr);
       const target=portalPointer({x:mouse.tx??mouse.x,y:mouse.ty??mouse.y},innerWidth/innerHeight,state.zoom);
       const distance=Math.hypot(target.x-PORTAL.centre[0],target.y-PORTAL.centre[1]);
       const enabled=hover.matches&&!reduced.matches&&mouse.on&&state.assembly>.45&&state.dive<.2&&distance>.08&&distance<PORTAL.hoverRadius;
