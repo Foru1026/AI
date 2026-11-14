@@ -16,8 +16,8 @@ const MODULES = {
   },
   images: {
     index: "Module 02",
-    title: "Connects LLMs to real business data",
-    tag: "RAG to production",
+    title: "Selected work: explore any screen",
+    tag: "AI commerce & SaaS",
     stats: [
       { label: "Performance", metric: "performance", initial: "+0%" },
       { label: "Availability", metric: "availability", initial: "90%" },

@@ -36,6 +36,8 @@ export type FrameMessage =
   | { type: "scroll"; delta: number; source: ScrollSource }
   | { type: "cursor-pointer"; x: number; y: number; interactive: boolean; pointerType: string; tone: CursorTone }
   | { type: "cursor-leave" }
+  | { type: "project-hover"; slug: string | null }
+  | { type: "project-open"; slug: string }
   | { type: "error"; message: string };
 
 export type FrameMessageType = FrameMessage["type"];

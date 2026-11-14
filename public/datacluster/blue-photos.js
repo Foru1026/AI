@@ -1,6 +1,9 @@
-// Numeric order is the scroll order, not lexicographic filename order (1, 10, 11...).
-export const GLASS_CARD_IMAGES = Object.freeze(Array.from({ length: 20 }, (_, index) =>
-  `../assets/img/glass-cards/glass-img ${index + 1}.jpg`));
+// Scroll order: every project's landing screen first, then its second screen.
+// Slugs must match src/data/projects.js, which holds the detail-panel content.
+export const PROJECT_SLUGS = Object.freeze(["marqo", "syntheum", "deeplumen", "thankly", "vendifai", "kepler", "sozai", "rubick", "flint", "livedemo"]);
+export const CARD_PROJECTS = Object.freeze([1, 2].flatMap(() => PROJECT_SLUGS));
+export const GLASS_CARD_IMAGES = Object.freeze([1, 2].flatMap(shot =>
+  PROJECT_SLUGS.map(slug => `../assets/projects/cards/${slug}-${shot}.jpg`)));
 export const PHOTO_ASPECT = 16/9;
 const columns = 4, rows = Math.ceil(GLASS_CARD_IMAGES.length/columns);
 const tileWidth = 768, tileHeight = 432, gutter = 4;

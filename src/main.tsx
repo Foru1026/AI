@@ -10,6 +10,7 @@ import "./styles/header.css";
 import "./styles/typography.css";
 import "./styles/scenes.css";
 import "./styles/interface.css";
+import "./styles/projects.css";
 import "./styles/cursor.css";
 import App from "./App.jsx";
 

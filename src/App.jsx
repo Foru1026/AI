@@ -39,6 +39,7 @@ import Atmosphere from "./components/Atmosphere.jsx";
 import SiteInterface from "./components/interface/SiteInterface.jsx";
 import CustomCursor from "./components/CustomCursor.jsx";
 import PreloaderBridge from "./components/PreloaderBridge.jsx";
+import { projectIndex } from "./data/projects.js";
 
 export default function App() {
   const [optics] = useState(loadLens);
@@ -99,12 +100,21 @@ export default function App() {
   }, [sceneReady]);
   const onRevealing = useCallback(() => setPhase("revealing"), []);
   const onDone = useCallback(() => setPhase("done"), []);
+  const [project, setProject] = useState(null);
+  const projectOpen = useRef(false);
+  projectOpen.current = project !== null;
+  const openProject = useCallback((slug) => {
+    if (projectIndex(slug) >= 0) setProject(slug);
+  }, []);
+  const closeProject = useCallback(() => setProject(null), []);
   useEffect(() => {
-    if (phase === "done") lenis.current?.start();
+    if (phase === "done" && !project) lenis.current?.start();
     else lenis.current?.stop();
-  }, [phase]);
+    if (project) post(frame.current, { type: "pointer", value: { x: 0, y: 0, active: false } });
+  }, [phase, project]);
 
   const onPointerMove = (e) => {
+    if (projectOpen.current) return;
     pointer.current.set((e.clientX / innerWidth - 0.5) * 2, -(e.clientY / innerHeight - 0.5) * 2, 1);
     post(frame.current, { type: "pointer", value: { x: pointer.current.x, y: pointer.current.y, active: true } });
   };
@@ -138,13 +148,14 @@ export default function App() {
       if (type === "loading-progress") loadTasks.continuation.progress(message.value);
       if (type === "pupil-covered") pupilCovered.current = message.value === true;
       if (type === "touch-state") snapper.current?.touch(message.value === true);
+      if (type === "project-open" && interactive.current && typeof message.slug === "string") openProject(message.slug);
       if (type === "portal-state" && experience.current) {
         experience.current.dataset.portalPhase = message.phase;
         if (journey.current > 0 && journey.current < JOURNEY_SPLIT && Number.isFinite(message.uiOpacity)) {
           scaleIntro.current = message.uiOpacity;
         }
       }
-      if (type === "scroll" && interactive.current) {
+      if (type === "scroll" && interactive.current && !projectOpen.current) {
         const delta = Number(message.delta);
         if (Number.isFinite(delta)) {
           if (lenis.current) {
@@ -162,7 +173,7 @@ export default function App() {
     };
     addEventListener("message", onMessage);
     return () => removeEventListener("message", onMessage);
-  }, [syncFrame]);
+  }, [syncFrame, openProject]);
 
   useEffect(() => {
     const instance = new Lenis({
@@ -206,6 +217,7 @@ export default function App() {
     let current = measure();
 
     const onKey = (e) => {
+      if (projectOpen.current) return;
       const delta = keyScrollDelta(e, innerHeight, instance.limit, instance.targetScroll);
       if (delta === null) return;
       e.preventDefault();
@@ -255,7 +267,7 @@ export default function App() {
       tunnel.current?.update(now, p, pointer.current, speed.current);
       glass.current = glassProgress((scroll - heroEnd) / unit);
       journey.current = journeyProgress((scroll - heroEnd) / unit - GLASS_SCREENS, profile);
-      cursor.current?.update(p, glass.current, journey.current);
+      cursor.current?.update(p, glass.current, journey.current, projectOpen.current);
 
       const passage = snap.update(
         {
@@ -344,7 +356,14 @@ export default function App() {
           </Canvas>
         </div>
         <Atmosphere scroll={page} />
-        <SiteInterface ref={ui} ready={phase !== "loading"} onNavigate={navigate} />
+        <SiteInterface
+          ref={ui}
+          ready={phase !== "loading"}
+          onNavigate={navigate}
+          project={project}
+          onProject={openProject}
+          onCloseProject={closeProject}
+        />
         <CustomCursor ref={cursor} ready={phase === "done"} frame={frame} />
         {phase !== "done" && (
           <PreloaderBridge

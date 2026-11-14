@@ -8,13 +8,14 @@ const HINTS = Object.freeze({
   explore: "Scroll\nto explore",
   down: "Scroll\ndown",
   dive: "Scroll\nto dive",
+  project: "View\nproject",
   default: "",
   active: "",
 });
 const ROLL = Object.freeze({ height: 22, duration: 420 });
 
-function hintFor(page, glass, journey) {
-  if (journey > 0) return "default";
+function hintFor(page, glass, journey, modal) {
+  if (modal || journey > 0) return "default";
   if (page < HERO_SPLIT) return "explore";
   if (page < 1) return "down";
   return glass >= IMAGE_CLOSE.start ? "dive" : "explore";
@@ -85,8 +86,8 @@ export default function CustomCursor({ ref, ready, frame }) {
   useImperativeHandle(
     ref,
     () => ({
-      update(page, glass, journey) {
-        const next = hintFor(page, glass, journey);
+      update(page, glass, journey, modal = false) {
+        const next = hintFor(page, glass, journey, modal);
         if (state.current !== next) {
           state.current = next;
           api.current?.refresh();
@@ -103,13 +104,14 @@ export default function CustomCursor({ ref, ready, frame }) {
     const reduced = matchMedia(MEDIA.reducedMotion);
     const roller = createHintRoller(track.current, hint.current, nextHint.current, () => reduced.matches || !fine.matches);
     let interactive = false;
+    let overProject = false;
     let visible = false;
     let decoded = false;
     let unmounted = false;
 
     const tellFrame = (value) => postToFrame(frame, { type: "cursor-enabled", value });
     const refresh = () => {
-      const next = interactive ? "active" : state.current;
+      const next = interactive ? "active" : overProject ? "project" : state.current;
       if (cursor.dataset.state !== next) cursor.dataset.state = next;
       roller.update(next);
     };
@@ -151,6 +153,11 @@ export default function CustomCursor({ ref, ready, frame }) {
       }
       if (message.type === "cursor-leave") {
         hide();
+        return;
+      }
+      if (message.type === "project-hover") {
+        overProject = typeof message.slug === "string";
+        refresh();
         return;
       }
       if (message.type !== "cursor-pointer") return;

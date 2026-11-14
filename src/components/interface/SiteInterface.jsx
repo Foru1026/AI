@@ -16,9 +16,11 @@ import ModuleSection from "../sections/ModuleSection.jsx";
 import ScaleSection from "../sections/ScaleSection.jsx";
 import ContactFooter from "../sections/ContactFooter.jsx";
 import ChapterNav from "../sections/ChapterNav.jsx";
+import ProjectPanel from "../sections/ProjectPanel.jsx";
+import { PROJECTS } from "../../data/projects.js";
 import { runRedactedGlitch } from "./glitch.js";
 
-export default function SiteInterface({ ref, ready, onNavigate }) {
+export default function SiteInterface({ ref, ready, onNavigate, project, onProject, onCloseProject }) {
   const root = useRef(null);
   const metrics = useRef({});
   const headlines = useRef({});
@@ -112,6 +114,14 @@ export default function SiteInterface({ ref, ready, onNavigate }) {
       <ScaleSection active={is("scale")} />
       <ContactFooter ref={footer} active={ui.scene === "follow" && ui.visible} />
       <ChapterNav visible={inChapter} current={ui.scene} labelRef={navLabel} onLink={go} />
+      <nav className="project-index" aria-label="Selected projects">
+        {PROJECTS.map((item) => (
+          <button key={item.slug} type="button" className="t-nav-mono" onClick={() => onProject(item.slug)}>
+            {item.name}
+          </button>
+        ))}
+      </nav>
+      <ProjectPanel slug={project} onClose={onCloseProject} onSelect={onProject} />
     </div>
   );
 }

@@ -59,7 +59,7 @@ contact details belong to übernatural, so use them for local reproduction only.
 | Connectors | `assets/interface/svg/connector-{mobile,desktop}.svg` | Hero fact connector lines |
 | Footer art | `assets/footer/brand-mark.svg`, `wordmark-{mobile,tablet,desktop}.svg`, `rule-left[-mobile/-tablet].svg`, `rule-right-{mobile,tablet,desktop}.svg`, `submit-arrow-{mobile,tablet,desktop}.svg` | One asset per breakpoint, as in the original |
 | Cursor | `assets/cursor/frame.svg`, `native.css` | Bracket frame around the custom cursor |
-| Textures | `assets/img/Regular-BG-2_compressed.jpg` (sky), `eye-ball-tex.png`, `glass-tunnel-fallback.png`, `glass-cards/glass-img 1–20.jpg` | |
+| Textures | `assets/img/Regular-BG-2_compressed.jpg` (sky), `eye-ball-tex.png`, `glass-tunnel-fallback.png`, `assets/projects/cards/<slug>-1|2.jpg` (project screens, 768×432) | Detail panel uses `assets/projects/full/*.webp` |
 | Portal | `assets/portal/portal.jpg`, `depth.jpg` | Colour + depth map |
 | 3D | `assets/models/central-cube.glb`, `rock.glb`, `server-module.glb`, `assets/environment/studio-softboxes.hdr` | |
 | Meta | `favicon.svg`, `assets/social/og-image.jpg` | |
