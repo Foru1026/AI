@@ -5,7 +5,7 @@ import * as THREE from 'three';
 export function createEyeMaterial(texture, irisRadius, irisTexture) {
   const uniforms = {
     uDestination: { value: texture }, uT: { value: 0 }, uPupil: { value: .32 },
-    uDive: { value: 0 }, uPreviewBlend: { value: 0 }, uOpen: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
+    uDive: { value: 0 }, uPreviewBlend: { value: 0 }, uOpen: { value: 0 }, uGain: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
     uImageAspect: { value: 1.6 },
     uIris: { value: irisTexture },
   };
@@ -24,7 +24,7 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       varying vec3 vEyeNormal;
       uniform sampler2D uDestination, uIris;
       uniform vec2 uResolution;
-      uniform float uImageAspect, uT, uPupil, uDive, uPreviewBlend, uOpen;
+      uniform float uImageAspect, uT, uPupil, uDive, uPreviewBlend, uOpen, uGain;
       float eyeHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)))*43758.5453); }
       float eyeNoise(vec2 p) {
         vec2 i = floor(p), f = fract(p); f = f*f*(3.0 - 2.0*f);
@@ -59,7 +59,8 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       // both relax to a flat, still view as the preview grows to screen space.
       vec2 lensQ = localUV - .5;
       float lens = 1.0 - uPreviewBlend;
-      float lensSpin = .35*lens*(1.0 - uOpen)*(1.0 - 2.0*dot(lensQ, lensQ));
+      // While still a faint illusion the inner world drifts in a slow swirl.
+      float lensSpin = lens*(1.0 - uGain)*(.35*(1.0 - 2.0*dot(lensQ, lensQ)) + .18*sin(uT*.35));
       lensQ = mat2(cos(lensSpin), -sin(lensSpin), sin(lensSpin), cos(lensSpin))*lensQ;
       lensQ *= mix(1.0, .72 + 1.12*dot(lensQ, lensQ), lens);
       localUV = .5 + lensQ;
@@ -77,11 +78,13 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       #include <emissivemap_fragment>
       totalEmissiveRadiance += irisColor*.1*iris*(1.0 - pupil);
       // The landscape is self-lit only through the pupil. The sclera stays opaque.
-      totalEmissiveRadiance += beyond*mix(.45, 1.0, uDive)*smoothstep(0.0, .35, uOpen)*pupil;
-      totalEmissiveRadiance += vec3(.12, .5, 1.25)*pupilRim*(.6 + .4*sin(uT*2.4 + angle*3.0));
+      // Soft falloff toward the pupil edge keeps the ghost floating inside the dark.
+      float ghostVignette = mix(1.0 - smoothstep(.15, .5, length(localUV - .5)), 1.0, smoothstep(.25, .8, uGain));
+      totalEmissiveRadiance += beyond*mix(.45, 1.0, uDive)*uGain*ghostVignette*pupil;
+      totalEmissiveRadiance += vec3(.12, .5, 1.25)*pupilRim*uGain*(.6 + .4*sin(uT*2.4 + angle*3.0));
     `);
   };
-  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v6';
+  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v7';
   return material;
 }
 

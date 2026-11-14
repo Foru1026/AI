@@ -716,8 +716,13 @@ function frame(){
   destinationScreen.material.uniforms.uAspect.value = camera.aspect;
   // The next world forms inside the pupil as we close in, then the same render
   // grows to fill the screen; the live portal takes over in exactly that state.
-  const worldOpen = journey && eye.visible ? s5(.42, .86, pb) : 0;
+  // Before the dive a faint, breathing ghost of that world already hangs in the
+  // pupil; the dive then strengthens it into the full reveal.
+  const worldDive = journey && eye.visible ? s5(.42, .86, pb) : 0;
+  const ghost = journey && eye.visible ? arrive*(.26 + .07*Math.sin(now*1.3) + .03*Math.sin(now*3.1 + 1.7)) : 0;
+  const worldOpen = Math.max(worldDive, .9*arrive*(journey && eye.visible ? 1 : 0));
   eyeMat.uniforms.uOpen.value = worldOpen;
+  eyeMat.uniforms.uGain.value = lerp(ghost, 1, worldDive);
   if (journey && (worldOpen > .001 || destinationScreen.visible)) {
     journey.renderPreview(worldOpen, now, mouse, renderer.getPixelRatio());
     eyeMat.uniforms.uImageAspect.value = destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect;
