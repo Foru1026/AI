@@ -57,6 +57,7 @@ function contactMock(): Plugin {
 }
 
 export default defineConfig({
+  appType: "mpa",
   plugins: [react(), contactMock()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
