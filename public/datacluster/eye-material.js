@@ -10,8 +10,8 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
     uIris: { value: irisTexture },
   };
   const material = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, roughness: .105, metalness: 0, clearcoat: 1,
-    clearcoatRoughness: .045, ior: 1.38, specularIntensity: .75,
+    color: 0xffffff, roughness: .5, metalness: 0, clearcoat: 0,
+    clearcoatRoughness: .5, ior: 1.38, specularIntensity: .2,
     envMapIntensity: .75, fog: false,
   });
   material.uniforms = uniforms;

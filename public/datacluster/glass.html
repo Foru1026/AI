@@ -666,7 +666,7 @@ function frame(){
   eye.visible = gprog > EYE_ARRIVAL.start;
   eyeAppearedAt = pupilAppearanceTime(eyeAppearedAt, arrive, now);
   eyeMat.opacity = arrive;
-  eyeMat.roughness = lerp(.24, .105, arrive);
+  eyeMat.roughness = .5;
   eyeMat.envMapIntensity = .75*arrive;
   eyeMat.uniforms.uT.value = now;
   eye.position.set(0, 0, EYE.z);
