@@ -6,32 +6,32 @@ import ModuleBar from "../interface/ModuleBar.jsx";
 const MODULES = {
   code: {
     index: "Module 01",
-    title: "Writes code at the speed of thought",
-    tag: "Full-stack fluent",
+    title: "Ships full-stack products end to end",
+    tag: "React to PostgreSQL",
     stats: [
-      { label: "Lines/sec", metric: "lines", initial: "1" },
-      { label: "Lang", metric: "lang", initial: "1" },
+      { label: "Experience", metric: "years", initial: "1 YR" },
+      { label: "Features", metric: "features", initial: "1" },
       { label: "Build", metric: "build", roll: BUILD_STATES },
     ],
   },
   images: {
     index: "Module 02",
-    title: "Renders anything you imagine",
-    tag: "Prompt to pixel",
+    title: "Connects LLMs to real business data",
+    tag: "RAG to production",
     stats: [
-      { label: "Resolution", metric: "resolution", initial: "256 PX" },
-      { label: "Generated today", metric: "generated", initial: "0" },
-      { label: "Render time", metric: "render", initial: "30.0 S" },
+      { label: "Performance", metric: "performance", initial: "+0%" },
+      { label: "Availability", metric: "availability", initial: "90%" },
+      { label: "Retrieval", metric: "retrieval", initial: "!@#" },
     ],
   },
   redacted: {
     index: "Module 03",
-    title: "[REDACTED]",
-    tag: "Always watching",
+    title: "AI agents with human-in-the-loop control",
+    tag: "Tool calling & MCP",
     stats: [
-      { label: "Subjects", metric: "subjects", initial: "0" },
-      { label: "Blind spots", metric: "blind", initial: "99" },
-      { label: "Consent", metric: "consent", initial: "!+?" },
+      { label: "Protocol", metric: "protocol", initial: "!@#" },
+      { label: "Unreviewed", metric: "unreviewed", initial: "99" },
+      { label: "Approval", metric: "approval", initial: "!@#$" },
     ],
   },
 };

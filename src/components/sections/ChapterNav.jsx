@@ -1,12 +1,12 @@
 const CHAPTER_LINKS = [
-  ["code", "CODE_GEN"],
-  ["images", "IMAGE_GEN"],
-  ["redacted", "[REDACTED]"],
+  ["code", "FULL_STACK"],
+  ["images", "LLM_RAG"],
+  ["redacted", "AI_AGENTS"],
 ];
 
 export default function ChapterNav({ visible, current, labelRef, onLink }) {
   return (
-    <nav className="chapter-nav" aria-label="Generation modules" aria-hidden={!visible} inert={!visible}>
+    <nav className="chapter-nav" aria-label="Expertise" aria-hidden={!visible} inert={!visible}>
       <p className="chapter-nav__title t-h1-mono">
         <span className="chapter-nav__marker" aria-hidden="true" />
         Queue:

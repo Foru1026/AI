@@ -21,7 +21,7 @@ export default function FeaturesSection({ active }) {
       <div className="scene__stage">
         <Callout
           index={2}
-          lines={["NODE_CLUSTER_07", "MODULES: 03 ACTIVE"]}
+          lines={["ENGINEER_09_YRS", "STACKS: 04 ACTIVE"]}
           style={{
             "--r": "21.34%",
             "--y": "30.69%",
@@ -35,7 +35,7 @@ export default function FeaturesSection({ active }) {
         />
         <Callout
           index={3}
-          lines={["LOAD 87.42", "LATENCY 0.8 MS"]}
+          lines={["PERF +35%", "UPTIME 99%+"]}
           style={{
             "--r": "14.97%",
             "--y": "53.32%",
@@ -50,7 +50,7 @@ export default function FeaturesSection({ active }) {
         <Callout
           index={4}
           fragment
-          lines={["FRAGMENT 03/12", "DECOUPLING..."]}
+          lines={["AGENT 03/12", "ORCHESTRATING..."]}
           style={{ "--x": "14.97%", "--y": "54.62%", "--x-t": "17.97%", "--y-t": "46.58%", "--x-d": "15.49%", "--y-d": "38.33%" }}
         >
           <img
@@ -72,12 +72,12 @@ export default function FeaturesSection({ active }) {
       <SceneFades />
       <div className="scene__content scene-text">
         <Reveal as="h2" index={0} className="scene-text__title t-h2 text-gradient-h2">
-          Compute power
+          Engineering power
           <br />
-          behind every output
+          behind every product
         </Reveal>
         <Reveal as="p" index={1} className="scene-text__tag t-label">
-          Real-time processing
+          End-to-end delivery
         </Reveal>
       </div>
     </Scene>

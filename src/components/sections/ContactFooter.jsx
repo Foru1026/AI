@@ -10,10 +10,11 @@ import {
 import { ASSETS } from "../../config/assets.ts";
 import { MEDIA, layoutFor } from "../../config/breakpoints.ts";
 
+const EMAIL = "benclarkk1026@gmail.com";
 const SOCIAL_LINKS = [
-  ["LinkedIn", "https://www.linkedin.com/in/ivan-shmalenko-sean/"],
-  ["Instagram", "https://www.instagram.com/ubernatural.io/"],
-  ["X[Twitter]", "https://x.com/ubernatural"],
+  ["LinkedIn", `mailto:${EMAIL}`],
+  ["Instagram", `mailto:${EMAIL}`],
+  ["X[Twitter]", `mailto:${EMAIL}`],
 ];
 
 function FooterAsset({ asset, className = "", alt = "", fluid = false, reveal }) {
@@ -148,7 +149,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
       inert={!preview}
       onTransitionEnd={onTransitionEnd}
     >
-      <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="übernatural" reveal="brand" />
+      <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="Ben Clark" reveal="brand" />
       <div className="contact-footer__scroll">
         <footer ref={content} className="contact-footer" aria-label="Contacts">
           <div className="contact-footer__top">
@@ -160,8 +161,8 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                 </h3>
                 <ul className="contact-footer__social-links">
                   {SOCIAL_LINKS.map(([label, href], i) => (
-                    <li key={href} data-footer-reveal={"social-" + i}>
-                      <a href={href} target="_blank" rel="noopener noreferrer">
+                    <li key={label} data-footer-reveal={"social-" + i}>
+                      <a href={href} {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
                         {label}
                       </a>
                     </li>
@@ -176,23 +177,23 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                   <div className="contact-footer__location">
                     <p>
                       <span className="contact-footer__address-line" data-footer-reveal="address-0">
-                        Advanced Design
+                        Ben Clark, Senior AI &amp;
                       </span>
                       <span className="contact-footer__address-line" data-footer-reveal="address-1">
-                        Technologies Ltd., DIFC, UAE
+                        Full Stack Engineer
                       </span>
                     </p>
                     <p>
                       <span className="contact-footer__address-line" data-footer-reveal="address-2">
-                        Innovation One, Level
+                        AI agents, LLM apps,
                       </span>
                       <span className="contact-footer__address-line" data-footer-reveal="address-3">
-                        3, DIFC, Dubai
+                        RAG &amp; automation
                       </span>
                     </p>
                   </div>
-                  <a className="contact-footer__email" href="mailto:bogdan@ubernatural.io" data-footer-reveal="contact-email">
-                    bogdan@ubernatural.io
+                  <a className="contact-footer__email" href={`mailto:${EMAIL}`} data-footer-reveal="contact-email">
+                    {EMAIL}
                   </a>
                 </address>
               </div>
@@ -206,14 +207,14 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                   How to reach you?
                 </h2>
                 <p className="contact-footer__description" data-footer-reveal="proposal-description">
-                  We’ll use this to send over the proposal.
+                  Leave your details and I’ll get in touch.
                 </p>
               </div>
               <form
                 className="contact-footer__form"
                 onSubmit={form.submit}
                 onInput={form.clearStatus}
-                aria-label="Request a proposal"
+                aria-label="Contact Ben Clark"
                 aria-busy={form.pending}
               >
                 <input
@@ -252,7 +253,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
 
           <div className="contact-footer__bottom">
             <div className="contact-footer__credits">
-              <p data-footer-reveal="credit">Made by übernatural. 2026.</p>
+              <p data-footer-reveal="credit">© 2026 Ben Clark.</p>
               <Legal privacyHref={privacyHref} termsHref={termsHref} />
             </div>
             <FooterAsset asset={ASSETS.footer.wordmark} className="contact-footer__wordmark" fluid />

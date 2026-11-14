@@ -7,9 +7,9 @@ const ENDPOINT = "/api/contact";
 const readFields = (data) => Object.fromEntries(FIELDS.map((k) => [k, String(data.get(k) ?? "").trim()]));
 
 function errorMessage(error) {
-  if (error?.code === "rate_limited") return "Please wait a few minutes before trying again, or reach us by email.";
+  if (error?.code === "rate_limited") return "Please wait a few minutes before trying again, or reach me by email.";
   if (error?.code === "invalid_input") return "Please check your name, email and phone number.";
-  return "Couldn’t send your details. Please try again or reach us by email.";
+  return "Couldn’t send your details. Please try again or reach me by email.";
 }
 
 export function createContactClient({
@@ -85,7 +85,7 @@ export function useContactForm(send) {
     try {
       client.current ??= createContactClient();
       await (send || client.current)(fields, { website: String(data.get("website") || "").trim() });
-      if (mounted.current) setStatus("Thank you. We’ll be in touch.");
+      if (mounted.current) setStatus("Thank you. I’ll be in touch.");
     } catch (error) {
       if (mounted.current) setStatus(errorMessage(error));
     } finally {

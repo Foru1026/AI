@@ -7,10 +7,10 @@ export default function SiteHeader({ footer, onLink }) {
         hidden={footer}
         className="site-header__logo"
         href="#hero"
-        aria-label="NODDAL — back to top"
+        aria-label="Ben Clark — back to top"
         onClick={(e) => onLink(e, "hero")}
       >
-        <img src={ASSETS.interface.logo} alt="NODDAL" width="138" height="32" />
+        <img src={ASSETS.interface.logo} alt="Ben Clark" width="138" height="32" />
       </a>
     </header>
   );

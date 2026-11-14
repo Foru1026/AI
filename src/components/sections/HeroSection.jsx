@@ -1,6 +1,6 @@
 import { Scene, SceneFades, Reveal } from "../interface/Scene.jsx";
 
-const FACTS = ["99.99% uptime SLA", "Tier III certified", "24/7 on-site engineers"];
+const FACTS = ["9 years experience", "99%+ availability", "15+ shipped features"];
 
 export default function HeroSection({ active }) {
   return (
@@ -10,12 +10,12 @@ export default function HeroSection({ active }) {
       <div className="scene__content hero-copy">
         <div className="hero__top">
           <Reveal as="h1" index={0} className="hero__title t-h1 text-gradient-h1">
-            Built for compute.
+            Built with AI.
             <br />
             Engineered to scale.
           </Reveal>
           <Reveal as="p" index={1} className="hero__lead t-body">
-            NODDAL is next-generation infrastructure for AI coding, image generation and a few other things.
+            Ben Clark is a Senior AI &amp; Full Stack Engineer building AI agents, LLM apps and automation.
           </Reveal>
         </div>
         <Reveal as="hr" index={2} className="hero__divider" />

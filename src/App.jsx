@@ -327,7 +327,7 @@ export default function App() {
               ref={frame}
               className="is-current"
               src={ASSETS.datacluster}
-              title="NODDAL — glass, eye, energy portal and social"
+              title="Ben Clark — interactive 3D scenes"
               onLoad={syncFrame}
             />
           )}

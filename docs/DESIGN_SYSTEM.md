@@ -62,7 +62,7 @@ contact details belong to übernatural, so use them for local reproduction only.
 | Textures | `assets/img/Regular-BG-2_compressed.jpg` (sky), `eye-ball-tex.png`, `glass-tunnel-fallback.png`, `glass-cards/glass-img 1–20.jpg` | |
 | Portal | `assets/portal/portal.jpg`, `depth.jpg` | Colour + depth map |
 | 3D | `assets/models/central-cube.glb`, `rock.glb`, `server-module.glb`, `assets/environment/studio-softboxes.hdr` | |
-| Meta | `favicon.svg`, `assets/social/og-noddal.jpg` | |
+| Meta | `favicon.svg`, `assets/social/og-image.jpg` | |
 | Preloader | `assets/preloader/preloader.{css,js}` | Original preloader |
 | Datacluster | `datacluster/` (35 files) | Iframe scene, `glass.html?embedded=1` |
 

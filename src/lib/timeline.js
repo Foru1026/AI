@@ -392,20 +392,20 @@ export function chapterScroll(chapter, baseScreens, unit) {
 
 export const IMAGE_CLOSE = Object.freeze({ start: 0.56, end: 0.675 });
 export const CHAPTERS = Object.freeze({ code: [0.14, 0.36], images: [0.36, 0.7], redacted: [0.7, 0.88] });
-export const BUILD_STATES = Object.freeze(["PUNCHED", "COMPILED", "LINKED", "LEARNING", "PASSING"]);
+export const BUILD_STATES = Object.freeze(["SCOPED", "BUILT", "TESTED", "SHIPPED", "RUNNING"]);
 export const STORY_LINES = Object.freeze({
   code: Object.freeze([
-    "First, we wrote\nevery instruction.",
-    "Code became\na shared language.",
-    "Machines learned\nto write with us.",
-    "Now, intent\nbecomes software.",
+    "First, documents\nbecame data.",
+    "Then, workflows\nran themselves.",
+    "Agents learned\nto take action.",
+    "Now, AI ships\nas product.",
   ]),
   images: Object.freeze([
-    "First, machines\nlearned to see.",
-    "Then, words\nbecame pictures.",
-    "Your imagination\nbecomes the image.",
+    "First, models\nlearned context.",
+    "Then, retrieval\ngrounded answers.",
+    "Your data\nbecomes decisions.",
   ]),
-  redacted: Object.freeze(["Some things\nstay [REDACTED]."]),
+  redacted: Object.freeze(["Some decisions\nstay human."]),
 });
 const STORY_RANGES = Object.freeze({ ...CHAPTERS, images: [CHAPTERS.images[0], IMAGE_CLOSE.start] });
 export const STORY_DEPTH = Object.freeze({ far: -440, near: 140, fadeFraction: 0.1, arrivalDuration: 900 });
@@ -435,10 +435,9 @@ export function redactedArrives(prev, next) {
   return prev < CHAPTERS.redacted[0] && next >= CHAPTERS.redacted[0] && storyLineState("redacted", 0, next).opacity >= 0.02;
 }
 
-function consentText(v) {
+function decodeText(target, v) {
   const p = clamp01(v);
-  const target = "N/A";
-  const shown = Math.floor(p * 3 + 1e-9);
+  const shown = Math.floor(p * target.length + 1e-9);
   const tick = Math.floor(p * 45);
   return [...target].map((c, i) => (i < shown ? c : SCRAMBLE[(tick * 7 + i * 11) % SCRAMBLE.length])).join("");
 }
@@ -453,23 +452,20 @@ export function moduleStats(glass) {
   const code = chapterProgress("code", glass);
   const images = chapterProgress("images", glass);
   const redacted = chapterProgress("redacted", glass);
-  const lines = Math.round(1 + 12479 * code ** 1.7);
-  const lang = Math.round(1 + 47 * code);
-  const resolution = Math.round(256 + 7936 * images);
-  const generated = Math.round(24e5 * images ** 1.15);
-  const render = 30 * (1.2 / 30) ** images;
-  const subjects = Math.round(81e8 * redacted ** 1.3);
-  const compact = (v, unit, suffix) => (v >= unit ? (v / unit).toFixed(1) + " " + suffix : v.toLocaleString("en-US"));
+  const years = Math.round(1 + 8 * code);
+  const features = Math.round(1 + 14 * code);
+  const speedup = Math.round(35 * images);
+  const availability = Math.round(90 + 9 * images);
   return {
-    lines: lines.toLocaleString("en-US"),
-    lang: String(lang),
+    years: years + (years === 1 ? " YR" : " YRS"),
+    features: features + (features === 15 ? "+" : ""),
     buildOffset: buildOffset(code),
-    resolution: resolution.toLocaleString("en-US") + " PX",
-    generated: compact(generated, 1e6, "M"),
-    render: render.toFixed(1) + " S",
-    subjects: compact(subjects, 1e9, "B"),
-    blind: String(Math.round(99 * (1 - redacted))),
-    consent: consentText(redacted),
+    performance: "+" + speedup + "%",
+    availability: availability + (availability === 99 ? "%+" : "%"),
+    retrieval: decodeText("RAG", images),
+    protocol: decodeText("MCP", redacted),
+    unreviewed: String(Math.round(99 * (1 - redacted))),
+    approval: decodeText("HITL", redacted),
   };
 }
 
