@@ -1,6 +1,6 @@
 import { Scene, SceneFades, Reveal } from "../interface/Scene.jsx";
 
-const FACTS = ["9 years experience", "99%+ availability", "15+ shipped features"];
+const FACTS = ["9 years in production", "AI agents · RAG · MCP", "Full-stack delivery"];
 
 export default function HeroSection({ active }) {
   return (
@@ -15,7 +15,8 @@ export default function HeroSection({ active }) {
             Engineered to scale.
           </Reveal>
           <Reveal as="p" index={1} className="hero__lead t-body">
-            Ben Clark is a Senior AI &amp; Full Stack Engineer building AI agents, LLM apps and automation.
+            Ben Clark is a Senior AI &amp; Full Stack Engineer who turns LLMs, APIs and business data into reliable
+            production systems: AI agents, RAG and full-stack products.
           </Reveal>
         </div>
         <Reveal as="hr" index={2} className="hero__divider" />

@@ -21,7 +21,7 @@ export default function FeaturesSection({ active }) {
       <div className="scene__stage">
         <Callout
           index={2}
-          lines={["ENGINEER_09_YRS", "STACKS: 04 ACTIVE"]}
+          lines={["ENGINEER_09_YRS", "TS · PYTHON · SQL"]}
           style={{
             "--r": "21.34%",
             "--y": "30.69%",
@@ -72,12 +72,12 @@ export default function FeaturesSection({ active }) {
       <SceneFades />
       <div className="scene__content scene-text">
         <Reveal as="h2" index={0} className="scene-text__title t-h2 text-gradient-h2">
-          Engineering power
+          From prototype
           <br />
-          behind every product
+          to production
         </Reveal>
         <Reveal as="p" index={1} className="scene-text__tag t-label">
-          End-to-end delivery
+          Full-stack AI delivery
         </Reveal>
       </div>
     </Scene>

@@ -45,9 +45,18 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       // Use the supplied iris verbatim. No procedural neon ring or replacement
       // fibres. Clamp to its circular artwork so transparent corners never leak.
       vec2 irisXY = en.xy / ${irisRadius.toFixed(4)};
+      // The fibres stay alive: slow ripples travel outward and the pattern
+      // gently twists, both fading out before the clamped outer edge.
+      float irisR = length(irisXY);
+      float irisWave = sin(irisR*16.0 - uT*1.3 + .9*sin(angle*4.0 + uT*.35));
+      float irisBand = smoothstep(.2, .4, irisR)*(1.0 - smoothstep(.82, .97, irisR));
+      float irisTwist = .035*sin(uT*.42 + irisR*5.0)*irisBand;
+      irisXY = mat2(cos(irisTwist), -sin(irisTwist), sin(irisTwist), cos(irisTwist))*irisXY;
+      irisXY *= 1.0 + .01*irisWave*irisBand;
       irisXY /= max(1.0, length(irisXY)/.995);
       vec4 irisSample = texture2D(uIris, .5 + irisXY*.5);
-      vec3 irisColor = irisSample.rgb;
+      float irisPulse = pow(.5 + .5*sin(irisR*9.0 - uT*.9 + 2.0*sin(angle*3.0 - uT*.2)), 4.0)*irisBand;
+      vec3 irisColor = irisSample.rgb*(1.0 + .28*irisPulse*smoothstep(.2, .7, dot(irisSample.rgb, vec3(.3, .4, .3))));
       iris *= irisSample.a;
       float veins = eyeNoise(vec2(cos(angle), sin(angle))*30.0 + er*13.0);
       vec3 sclera = mix(vec3(.52, .69, .79), vec3(.73, .85, .9), smoothstep(-.6, .9, en.y));
@@ -84,7 +93,7 @@ export function createEyeMaterial(texture, irisRadius, irisTexture) {
       totalEmissiveRadiance += vec3(.12, .5, 1.25)*pupilRim*uGain*(.6 + .4*sin(uT*2.4 + angle*3.0));
     `);
   };
-  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v7';
+  material.customProgramCacheKey = () => 'nodal-pupil-eye-supplied-iris-v8';
   return material;
 }
 

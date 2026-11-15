@@ -56,9 +56,26 @@ function contactMock(): Plugin {
   };
 }
 
+// The datacluster scene is plain un-hashed ES modules; force revalidation so edits are never served stale.
+function freshDatacluster(): Plugin {
+  const handler: Connect.NextHandleFunction = (req, res, next) => {
+    if (req.url?.startsWith("/datacluster/")) res.setHeader("Cache-Control", "no-cache");
+    next();
+  };
+  return {
+    name: "noddal-fresh-datacluster",
+    configureServer(server) {
+      server.middlewares.use(handler);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(handler);
+    },
+  };
+}
+
 export default defineConfig({
   appType: "mpa",
-  plugins: [react(), contactMock()],
+  plugins: [react(), contactMock(), freshDatacluster()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },

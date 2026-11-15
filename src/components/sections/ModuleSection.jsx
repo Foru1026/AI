@@ -6,8 +6,8 @@ import ModuleBar from "../interface/ModuleBar.jsx";
 const MODULES = {
   code: {
     index: "Module 01",
-    title: "Ships full-stack products end to end",
-    tag: "React to PostgreSQL",
+    title: "9 years shipping production software",
+    tag: "React · Node.js · Python · PostgreSQL",
     stats: [
       { label: "Experience", metric: "years", initial: "1 YR" },
       { label: "Features", metric: "features", initial: "1" },
@@ -16,8 +16,8 @@ const MODULES = {
   },
   images: {
     index: "Module 02",
-    title: "Selected work: explore any screen",
-    tag: "AI commerce & SaaS",
+    title: "Selected work: open any screen for details",
+    tag: "AI commerce, agents & SaaS",
     stats: [
       { label: "Performance", metric: "performance", initial: "+0%" },
       { label: "Availability", metric: "availability", initial: "90%" },
@@ -26,8 +26,8 @@ const MODULES = {
   },
   redacted: {
     index: "Module 03",
-    title: "AI agents with human-in-the-loop control",
-    tag: "Tool calling & MCP",
+    title: "Agents that act, with human approval built in",
+    tag: "Tool calling · MCP · Workflow state",
     stats: [
       { label: "Protocol", metric: "protocol", initial: "!@#" },
       { label: "Unreviewed", metric: "unreviewed", initial: "99" },
@@ -36,11 +36,11 @@ const MODULES = {
   },
 };
 
-export default function ModuleSection({ name, active, headlines, glitchRef, metrics }) {
+export default function ModuleSection({ name, active, headlines, metrics }) {
   return (
     <Scene name={name} className="scene scene--module" active={active}>
       <div className="scene__stage" />
-      <StoryHeadlines chapter={name} nodes={headlines} glitchRef={glitchRef} />
+      <StoryHeadlines chapter={name} nodes={headlines} />
       <SceneFades />
       <ModuleBar {...MODULES[name]} metrics={metrics} />
     </Scene>

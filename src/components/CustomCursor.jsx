@@ -17,6 +17,7 @@ const ROLL = Object.freeze({ height: 22, duration: 420 });
 function hintFor(page, glass, journey, modal) {
   if (modal || journey > 0) return "default";
   if (page < HERO_SPLIT) return "explore";
+  if (page >= 0.9) return "default";
   if (page < 1) return "down";
   return glass >= IMAGE_CLOSE.start ? "dive" : "explore";
 }
@@ -162,7 +163,7 @@ export default function CustomCursor({ ref, ready, frame }) {
       }
       if (message.type !== "cursor-pointer") return;
       const { x, y, interactive: over, pointerType, tone } = message;
-      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
+      if (!frame.current || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
       const rect = frame.current.getBoundingClientRect();
       show(rect.left + x * rect.width, rect.top + y * rect.height, over === true, pointerType, tone);
     };

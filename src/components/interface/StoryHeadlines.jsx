@@ -1,6 +1,6 @@
-import { STORY_LINES } from "../../lib/timeline.js";
+import { STORY_KICKERS, STORY_LINES } from "../../lib/timeline.js";
 
-export default function StoryHeadlines({ chapter, nodes, glitchRef }) {
+export default function StoryHeadlines({ chapter, nodes }) {
   return (
     <div className="story-headlines" data-story-chapter={chapter}>
       {STORY_LINES[chapter].map((text, i) => (
@@ -11,22 +11,11 @@ export default function StoryHeadlines({ chapter, nodes, glitchRef }) {
           aria-hidden="true"
           ref={(el) => {
             nodes.current[chapter + ":" + i] = el;
-            if (glitchRef) glitchRef.current = el;
           }}
         >
+          <span className="story-headline__kicker t-label-mono">{STORY_KICKERS[chapter][i]}</span>
           <span className="story-headline__body">
             <span className="story-headline__text text-gradient-h1">{text}</span>
-            {chapter === "redacted" && (
-              <>
-                <span className="story-headline__flare" aria-hidden="true" />
-                <span className="story-headline__channel story-headline__channel--cyan" aria-hidden="true">
-                  {text}
-                </span>
-                <span className="story-headline__channel story-headline__channel--blue" aria-hidden="true">
-                  {text}
-                </span>
-              </>
-            )}
           </span>
         </h2>
       ))}

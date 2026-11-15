@@ -28,7 +28,7 @@ export const ASSETS = Object.freeze({
   },
   img: {
     sky: `${ROOT}/img/Regular-BG-2_compressed.jpg`,
-    tunnelFallback: `${ROOT}/img/glass-tunnel-fallback.png`,
+    tunnelFallback: `${ROOT}/img/glass-tunnel-fallback.jpg`,
   },
   interface: {
     logo: `${ROOT}/interface/svg/logo.svg`,
@@ -54,11 +54,6 @@ export const ASSETS = Object.freeze({
       mobile: footer("submit-arrow-mobile.svg", 11.1925),
       tablet: footer("submit-arrow-tablet.svg", 11.1925),
       desktop: footer("submit-arrow-desktop.svg", 11.1925),
-    },
-    wordmark: {
-      mobile: footer("wordmark-mobile.svg", 390),
-      tablet: footer("wordmark-tablet.svg", 768),
-      desktop: footer("wordmark-desktop.svg", 1440),
     },
   } satisfies Record<string, ResponsiveAsset>,
   datacluster: "/datacluster/glass.html?embedded=1",

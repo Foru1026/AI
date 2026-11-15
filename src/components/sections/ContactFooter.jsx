@@ -1,4 +1,4 @@
-import { useImperativeHandle, useLayoutEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { useContactForm, FIELD_LIMITS } from "../../lib/contact.js";
 import {
   footerState,
@@ -11,10 +11,12 @@ import { ASSETS } from "../../config/assets.ts";
 import { MEDIA, layoutFor } from "../../config/breakpoints.ts";
 
 const EMAIL = "benclarkk1026@gmail.com";
-const SOCIAL_LINKS = [
-  ["LinkedIn", `mailto:${EMAIL}`],
-  ["Instagram", `mailto:${EMAIL}`],
-  ["X[Twitter]", `mailto:${EMAIL}`],
+const CHANNELS = [
+  { id: "email", label: "Email", value: EMAIL, href: `mailto:${EMAIL}`, action: "Write" },
+  { id: "whatsapp", label: "WhatsApp", value: "+1 (730) 210-3965", href: "https://wa.me/17302103965", action: "Chat" },
+  { id: "telegram", label: "Telegram", value: "@foru10261", href: "https://t.me/foru10261", action: "Message" },
+  { id: "discord", label: "Discord", value: "foru10261", copy: "foru10261", action: "Copy ID" },
+  { id: "resume", label: "Résumé", value: "Ben_Clark_Resume.pdf", href: "/Ben_Clark_Resume.pdf", action: "Download", download: true },
 ];
 
 function FooterAsset({ asset, className = "", alt = "", fluid = false, reveal }) {
@@ -62,17 +64,54 @@ function Field({ name, label, type, autoComplete, required, right, disabled }) {
   );
 }
 
-function Legal({ privacyHref, termsHref, className = "" }) {
+function Channel({ channel, index }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 1800);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const body = (
+    <>
+      <span className="contact-footer__channel-label">{channel.label}</span>
+      <span className="contact-footer__channel-value">{channel.value}</span>
+      <span className="contact-footer__channel-action">
+        {copied ? "Copied" : channel.action}
+        <span aria-hidden="true">{channel.copy ? (copied ? " ✓" : " ⧉") : channel.download ? " ↓" : " ↗"}</span>
+      </span>
+    </>
+  );
+
   return (
-    <p className={"contact-footer__legal " + className} data-footer-reveal="legal">
-      {privacyHref ? <a href={privacyHref}>Privacy Policy</a> : <span>Privacy Policy</span>}
-      {"  | "}
-      {termsHref ? <a href={termsHref}>Terms &amp; Conditions</a> : <span>Terms &amp; Conditions</span>}
-    </p>
+    <li className="contact-footer__channel" data-footer-reveal={"channel-" + index}>
+      {channel.copy ? (
+        <button
+          type="button"
+          className="contact-footer__channel-link"
+          aria-label={`Copy ${channel.label} ID ${channel.value}`}
+          onClick={() => navigator.clipboard?.writeText(channel.copy).then(() => setCopied(true), () => {})}
+        >
+          {body}
+        </button>
+      ) : (
+        <a
+          className="contact-footer__channel-link"
+          href={channel.href}
+          {...(channel.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          {...(channel.download ? { download: true } : {})}
+        >
+          {body}
+        </a>
+      )}
+      <span className="contact-footer__channel-status" role="status">
+        {copied ? `${channel.label} ID copied` : ""}
+      </span>
+    </li>
   );
 }
 
-export default function ContactFooter({ ref, active = false, preview = false, onSubmit, privacyHref, termsHref }) {
+export default function ContactFooter({ ref, active = false, preview = false, onSubmit }) {
   const viewport = useRef(null);
   const content = useRef(null);
   const size = useRef({ width: 0, height: 0, contentHeight: 0 });
@@ -146,68 +185,32 @@ export default function ContactFooter({ ref, active = false, preview = false, on
       data-scene="follow"
       data-interactive={preview ? "true" : undefined}
       aria-hidden={!active && !preview}
-      inert={!preview}
       onTransitionEnd={onTransitionEnd}
     >
       <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="Ben Clark" reveal="brand" />
       <div className="contact-footer__scroll">
-        <footer ref={content} className="contact-footer" aria-label="Contacts">
+        <footer ref={content} className="contact-footer" aria-label="Contact">
           <div className="contact-footer__top">
             <span className="contact-footer__brand-space" aria-hidden="true" />
-            <div className="contact-footer__details">
-              <nav className="contact-footer__social" aria-label="Social Media">
-                <h3 className="contact-footer__caption" data-footer-reveal="social-title">
-                  Social Media
-                </h3>
-                <ul className="contact-footer__social-links">
-                  {SOCIAL_LINKS.map(([label, href], i) => (
-                    <li key={label} data-footer-reveal={"social-" + i}>
-                      <a href={href} {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                        {label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-              <div className="contact-footer__contacts">
-                <h3 className="contact-footer__caption" data-footer-reveal="contacts-title">
-                  Contacts
-                </h3>
-                <address className="contact-footer__address">
-                  <div className="contact-footer__location">
-                    <p>
-                      <span className="contact-footer__address-line" data-footer-reveal="address-0">
-                        Ben Clark, Senior AI &amp;
-                      </span>
-                      <span className="contact-footer__address-line" data-footer-reveal="address-1">
-                        Full Stack Engineer
-                      </span>
-                    </p>
-                    <p>
-                      <span className="contact-footer__address-line" data-footer-reveal="address-2">
-                        AI agents, LLM apps,
-                      </span>
-                      <span className="contact-footer__address-line" data-footer-reveal="address-3">
-                        RAG &amp; automation
-                      </span>
-                    </p>
-                  </div>
-                  <a className="contact-footer__email" href={`mailto:${EMAIL}`} data-footer-reveal="contact-email">
-                    {EMAIL}
-                  </a>
-                </address>
-              </div>
+            <div className="contact-footer__meta" data-footer-reveal="top-meta">
+              <p className="contact-footer__availability">
+                <span className="contact-footer__pulse" aria-hidden="true" />
+                Open to new opportunities
+              </p>
             </div>
           </div>
 
           <div className="contact-footer__middle">
             <div className="contact-footer__proposal">
               <div className="contact-footer__intro">
+                <p className="contact-footer__eyebrow" data-footer-reveal="proposal-eyebrow">
+                  Contact
+                </p>
                 <h2 className="contact-footer__title" data-footer-reveal="proposal-title">
-                  How to reach you?
+                  Let’s build what’s next.
                 </h2>
                 <p className="contact-footer__description" data-footer-reveal="proposal-description">
-                  Leave your details and I’ll get in touch.
+                  Hiring, or shipping an AI product? Leave your details and I’ll reply personally.
                 </p>
               </div>
               <form
@@ -238,7 +241,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                     data-footer-reveal="submit"
                     data-cursor-tone="dark"
                   >
-                    <span className="contact-footer__submit-label">{form.pending ? "Sending…" : "Submit"}</span>
+                    <span className="contact-footer__submit-label">{form.pending ? "Sending…" : "Send message"}</span>
                     <span className="contact-footer__submit-icon" aria-hidden="true">
                       <FooterAsset asset={ASSETS.footer.submitArrow} className="contact-footer__arrow" />
                     </span>
@@ -249,14 +252,31 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                 </p>
               </form>
             </div>
+
+            <nav className="contact-footer__channels" aria-label="Direct contact">
+              <h3 className="contact-footer__caption" data-footer-reveal="channels-title">
+                Direct channels
+              </h3>
+              <ul className="contact-footer__channel-list">
+                {CHANNELS.map((channel, i) => (
+                  <Channel key={channel.id} channel={channel} index={i} />
+                ))}
+              </ul>
+            </nav>
           </div>
 
           <div className="contact-footer__bottom">
             <div className="contact-footer__credits">
-              <p data-footer-reveal="credit">© 2026 Ben Clark.</p>
-              <Legal privacyHref={privacyHref} termsHref={termsHref} />
+              <p data-footer-reveal="credit">© 2026 Ben Clark. All rights reserved.</p>
+              <p data-footer-reveal="legal">Senior AI &amp; Full Stack Engineer</p>
             </div>
-            <FooterAsset asset={ASSETS.footer.wordmark} className="contact-footer__wordmark" fluid />
+            <div className="contact-footer__wordmark" aria-hidden="true">
+              <svg viewBox="0 0 1440 205" preserveAspectRatio="xMidYMax meet">
+                <text x="720" y="205" textAnchor="middle" textLength="1424" lengthAdjust="spacing">
+                  BEN CLARK
+                </text>
+              </svg>
+            </div>
           </div>
         </footer>
       </div>

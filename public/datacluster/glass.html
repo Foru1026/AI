@@ -241,7 +241,7 @@ function createHistoryPanel(index){
 function drawHistoryPanel(p, reveal){
   const x = p.x; x.clearRect(0, 0, 512, 270); x.textBaseline = 'top';
   x.font = `15px ${FONT}`; x.fillStyle = '#ffa976';
-  x.fillText(`${String(p.index+1).padStart(2, '0')} / 20   ${p.story.dateLabel.toUpperCase()}`, 18, 14);
+  x.fillText(`${String(p.index+1).padStart(2, '0')} / ${CODE_HISTORY.length}   ${p.story.dateLabel.toUpperCase()}`, 18, 14);
   x.font = `17px ${FONT}`; x.fillStyle = '#d6eaff'; x.fillText(p.story.title, 18, 39);
   x.font = `${p.codeSize}px ${FONT}`;
   let remaining = reveal, cursor = null;

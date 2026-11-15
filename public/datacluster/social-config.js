@@ -1,7 +1,7 @@
 export const SOCIALS = Object.freeze([
-  { id:'x', label:'X / Twitter', file:'x_icon.svg', href:'mailto:benclarkk1026@gmail.com' },
-  { id:'linkedin', label:'LinkedIn', file:'linkedin_icon.svg', href:'mailto:benclarkk1026@gmail.com' },
-  { id:'instagram', label:'Instagram', file:'insta_icon.svg', href:'mailto:benclarkk1026@gmail.com' },
+  { id:'telegram', label:'Telegram', href:'https://t.me/foru10261' },
+  { id:'whatsapp', label:'WhatsApp', href:'https://wa.me/17302103965' },
+  { id:'email', label:'Email', href:'mailto:benclarkk1026@gmail.com' },
 ]);
 export const LOGO = Object.freeze({ size:4.8, extent:90, depth:13, bevel:1.15, desktop:32000, mobile:18000, hoverScatter:.7, morphSeconds:1.4 });
 export const socialIndex = index => ((index % SOCIALS.length) + SOCIALS.length) % SOCIALS.length;

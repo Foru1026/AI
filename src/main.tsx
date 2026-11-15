@@ -3,7 +3,6 @@ import "./styles/design-system/index.css";
 import "lenis/dist/lenis.css";
 import "./styles/base.css";
 import "./styles/experience.css";
-import "./styles/legacy.css";
 import "./styles/atmosphere.css";
 import "./styles/footer.css";
 import "./styles/header.css";

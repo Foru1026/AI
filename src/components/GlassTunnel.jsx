@@ -8,6 +8,7 @@ export default function GlassTunnel({ ref, onReady }) {
   const renderer = useRef(null);
   const fallbackImage = useRef(null);
   const fallbackGlow = useRef(null);
+  const last = useRef({ opacity: -1, active: null, flight: -1, whiteOut: -1 });
   const [fallback, setFallback] = useState(false);
 
   const useFallback = (error) => {
@@ -22,10 +23,17 @@ export default function GlassTunnel({ ref, onReady }) {
     () => ({
       update(time, page, pointer, speed) {
         const state = tunnelState(page);
+        const prev = last.current;
         if (layer.current) {
-          layer.current.style.opacity = String(state.opacity);
-          layer.current.classList.toggle("is-active", state.active);
-          layer.current.dataset.active = String(state.active);
+          if (prev.opacity !== state.opacity) {
+            prev.opacity = state.opacity;
+            layer.current.style.opacity = String(state.opacity);
+          }
+          if (prev.active !== state.active) {
+            prev.active = state.active;
+            layer.current.classList.toggle("is-active", state.active);
+            layer.current.dataset.active = String(state.active);
+          }
         }
         if (state.active) {
           try {
@@ -36,8 +44,14 @@ export default function GlassTunnel({ ref, onReady }) {
         } else {
           renderer.current?.pause();
         }
-        if (fallbackImage.current) fallbackImage.current.style.transform = `scale(${1 + state.flight * 7})`;
-        if (fallbackGlow.current) fallbackGlow.current.style.opacity = String(state.whiteOut);
+        if (fallbackImage.current && prev.flight !== state.flight) {
+          prev.flight = state.flight;
+          fallbackImage.current.style.transform = `scale(${1 + state.flight * 7})`;
+        }
+        if (fallbackGlow.current && prev.whiteOut !== state.whiteOut) {
+          prev.whiteOut = state.whiteOut;
+          fallbackGlow.current.style.opacity = String(state.whiteOut);
+        }
       },
     }),
     [],

@@ -7,12 +7,12 @@ export default function ScaleSection({ active }) {
       <SceneFades />
       <div className="scene__content scene-text">
         <Reveal as="h2" index={0} className="scene-text__title t-h2 text-gradient-h2">
-          Every system.
+          Every layer.
           <br />
           One engineer.
         </Reveal>
         <Reveal index={1} className="portal-caption">
-          <p className="scene-text__tag t-label">Built to scale</p>
+          <p className="scene-text__tag t-label">Frontend · Backend · AI · DevOps</p>
           <p className="portal-caption__hint">Move your cursor close to the portal to attract lightning</p>
         </Reveal>
       </div>

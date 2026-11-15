@@ -8,6 +8,7 @@ import {
   CONTINUATION_PAGE,
   GLASS_SCREENS,
   HANDOFF_PAGE,
+  HERO_SCALE,
   JOURNEY_SPLIT,
   LENIS,
   cancelReversalFor,
@@ -25,7 +26,6 @@ import {
   keyScrollDelta,
   loadLens,
   navigateTo,
-  saveLens,
   sceneFor,
   scrollBy,
 } from "./lib/timeline.js";
@@ -42,17 +42,17 @@ import PreloaderBridge from "./components/PreloaderBridge.jsx";
 import { projectIndex } from "./data/projects.js";
 
 export default function App() {
-  const [optics] = useState(loadLens);
-  const opticsRef = useRef(optics);
-  opticsRef.current = optics;
+  const opticsRef = useRef(loadLens());
 
   const experience = useRef();
   const ui = useRef();
   const cursor = useRef();
+  const atmosphere = useRef();
   const heroCanvas = useRef();
   const tunnel = useRef();
   const continuation = useRef();
   const frame = useRef();
+  const lastProgress = useRef({ glass: -1, journey: -1, speed: -1 });
 
   const [mountFrame, setMountFrame] = useState(false);
   const [frameActive, setFrameActive] = useState(false);
@@ -71,10 +71,11 @@ export default function App() {
   const glassReadyRef = useRef(false);
   glassReadyRef.current = glassReady;
 
-  const heroBaseScreens = useCallback(
-    () => Number(getComputedStyle(experience.current).getPropertyValue("--hero-scroll-screens")),
-    [],
-  );
+  const heroBaseScreens = useCallback(() => {
+    const el = experience.current;
+    if (!el) return 3.7;
+    return Number(getComputedStyle(el).getPropertyValue("--hero-scroll-screens")) || 3.7;
+  }, []);
   const navigate = useCallback(
     (chapter) => {
       snapper.current?.reset();
@@ -132,11 +133,6 @@ export default function App() {
   useEffect(() => {
     syncFrame();
   }, [syncFrame, handoff]);
-
-  useEffect(() => {
-    saveLens(optics);
-    post(frame.current, { type: "optics", value: optics });
-  }, [optics]);
 
   useEffect(() => {
     const onMessage = (e) => {
@@ -206,6 +202,7 @@ export default function App() {
       const profile = currentProfile();
       const el = experience.current;
       el.dataset.deviceProfile = profile;
+      el.style.setProperty("--hero-scale", String(HERO_SCALE));
       el.style.setProperty("--journey-scroll-screens", String(journeyScreens(profile)));
       const style = getComputedStyle(el);
       const baseScreens = Number(style.getPropertyValue("--hero-scroll-screens"));
@@ -264,6 +261,7 @@ export default function App() {
       lastScroll.current = scroll;
       page.current = heroProgress(scroll / unit, baseScreens);
       const p = page.current;
+      atmosphere.current?.update(p);
       tunnel.current?.update(now, p, pointer.current, speed.current);
       glass.current = glassProgress((scroll - heroEnd) / unit);
       journey.current = journeyProgress((scroll - heroEnd) / unit - GLASS_SCREENS, profile);
@@ -290,7 +288,7 @@ export default function App() {
       const chapter =
         p < 1 ? "tunnel" : journey.current > 0 ? (journey.current < JOURNEY_SPLIT ? "portal" : "social") : glassChapter(glass.current);
       if (experience.current && experience.current.dataset.chapter !== chapter) experience.current.dataset.chapter = chapter;
-      ui.current?.update(sceneFor(p, glass.current, journey.current, scaleIntro.current), glass.current, 1, journey.current);
+      ui.current?.update(sceneFor(p, glass.current, journey.current, scaleIntro.current), glass.current, journey.current, p);
 
       const takeOver = continuationReady && p >= CONTINUATION_PAGE;
       const handedOff = p >= HANDOFF_PAGE;
@@ -302,7 +300,18 @@ export default function App() {
         flags.handoff = handedOff;
         setHandoff(handedOff);
       }
-      post(frame.current, { type: "progress", value: glass.current, journey: journey.current, speed: speed.current });
+      if (frame.current && (takeOver || glass.current > 0 || journey.current > 0)) {
+        const prev = lastProgress.current;
+        const g = glass.current;
+        const j = journey.current;
+        const s = speed.current;
+        if (Math.abs(prev.glass - g) > 0.0005 || Math.abs(prev.journey - j) > 0.0005 || Math.abs(prev.speed - s) > 0.02) {
+          prev.glass = g;
+          prev.journey = j;
+          prev.speed = s;
+          post(frame.current, { type: "progress", value: g, journey: j, speed: s });
+        }
+      }
       if (heroCanvas.current) {
         heroCanvas.current.style.pointerEvents = handedOff ? "none" : "auto";
         heroCanvas.current.classList.toggle("is-inactive", handedOff);
@@ -355,7 +364,7 @@ export default function App() {
             <HeroScene pointer={pointer} scroll={page} motion={speed} optics={opticsRef} onReady={onSceneReady} />
           </Canvas>
         </div>
-        <Atmosphere scroll={page} />
+        <Atmosphere ref={atmosphere} />
         <SiteInterface
           ref={ui}
           ready={phase !== "loading"}

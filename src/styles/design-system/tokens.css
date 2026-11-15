@@ -31,6 +31,8 @@
   --color-blue: #1f85d9;
   --color-orange: #ff976b;          /* mobile tunnel glow (02.01, Ellipse 310) */
   --color-avatar-badge: #ebe3e1;    /* Figma: "Avatar Bage" */
+  --color-available: #4ade80;       /* footer availability dot */
+  --color-wordmark: #212121;        /* footer BEN CLARK wordmark */
 
   /* Glitch channels: [REDACTED] headline + chapter-nav label */
   --color-glitch-red: #ff3149;
@@ -105,6 +107,7 @@
   /* Weights = the font files' own weight classes (same numbers as Figma Dev Mode) */
   --fw-display-light: 400;   /* NHG 45 Light */
   --fw-display-roman: 500;   /* NHG 55 Roman */
+  --fw-display-medium: 600;  /* NHG 65 Medium */
   --fw-mono-light: 300;      /* Geist Mono Light */
   --fw-mono-regular: 400;    /* Geist Mono Regular */
   --fw-mono-medium: 500;     /* Geist Mono Medium */
@@ -209,7 +212,6 @@
   --radius-round: 50%;              /* cursor dots */
 
   /* ---------- Effects ---------- */
-  --blur-card: 27px;                /* Figma background blur on subject cards */
   --blur-widget: 12px;              /* social widget */
   --dot: 4px;                       /* little square bullets */
   --marker: 6px;                    /* chapter nav active marker */

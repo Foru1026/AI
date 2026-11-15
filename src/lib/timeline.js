@@ -13,7 +13,7 @@ export const smootherstep = (a, b, v) => {
 /* ---------- Hero ---------- */
 
 export const HERO_SPLIT = 0.555;
-export const HERO_TAIL_STRETCH = 1.5;
+export const HERO_TAIL_STRETCH = 7.2;
 export const HERO_SCALE = HERO_SPLIT + (1 - HERO_SPLIT) * HERO_TAIL_STRETCH;
 export const CAMERA_START = Object.freeze([0, 0.2, 9]);
 export const CAMERA_FOV = 35;
@@ -55,6 +55,68 @@ export function heroProgress(screens, base) {
 // Page progress where the hero canvas hands off to the tunnel, and where the datacluster iframe takes over.
 export const HANDOFF_PAGE = 0.886;
 export const CONTINUATION_PAGE = 0.975;
+
+// The corridor in the glass tunnel. Each period holds, fades out, then the next one comes in.
+const TUNNEL_BEATS = Object.freeze([
+  [
+    "1950",
+    "Alan Turing asks whether a machine can do what a mind does. The first programs do not converse. They search, they follow a proof, and they play a closed game. Intelligence, here, is still a procedure someone has written down.",
+  ],
+  [
+    "1956",
+    "A summer workshop at Dartmouth gives the work its name. The claim is both modest and large: if a problem can be described exactly, a machine might be made to solve it. The years after are spent learning how hard that sentence is.",
+  ],
+  [
+    "1997",
+    "Deep Blue beats the world chess champion across a match, not a single game. The machine does not understand the board the way a person does. It searches further, and it does not tire. A public result replaces an argument.",
+  ],
+  [
+    "2012",
+    "A network looks at photographs and names what it sees, well enough to change the field. The gain does not come from a cleverer rule. It comes from examples, and from letting the model find the pattern. Vision is the proof. The rest follows.",
+  ],
+  [
+    "2017",
+    "A paper shows that attention is enough. A model can weigh one part of a sentence against another, and keep the beginning in mind while it reads the end. Language stops being a bag of words. It becomes something a system can read through.",
+  ],
+  [
+    "2020",
+    "Scale turns language into a general tool. One model begins to handle many kinds of work: drafting, answering, summarising. The limit is no longer the idea of language. It is data, compute, and how carefully the model is asked.",
+  ],
+  [
+    "2022",
+    "The change people feel is the interface. A person writes a question in ordinary language and receives an answer. The model is still uneven, and it still needs a reader who will check it. For the first time, the work is not reserved for a lab.",
+  ],
+  [
+    "2024",
+    "Models reason across longer tasks, see images as well as text, and start to use tools. The work shifts from a single reply to a chain of steps a person can still interrupt. Accuracy becomes a product concern, not only a research one.",
+  ],
+  [
+    "2025",
+    "Agents plan, call tools, and stay on a task until a result is ready. Human approval sits in the loop where it matters. Shipping means reliability, cost, and judgment — not only a stronger model.",
+  ],
+  [
+    "2026",
+    "AI settles into the stack: search, support, ops, and product surfaces that people already open every day. The question is no longer whether the model can answer. It is whether the system around it is safe, fast, and worth trusting.",
+  ],
+]);
+
+export function tunnelStory(page) {
+  const start = 0.585;
+  const end = 0.895;
+  const count = TUNNEL_BEATS.length;
+  const flight = clamp01((page - start) / (end - start));
+  const scaled = flight * count;
+  const index = Math.min(count - 1, Math.floor(scaled));
+  const local = scaled - index;
+  const edge = 0.2;
+  const lineOpacity =
+    index === count - 1
+      ? smoothstep(0, edge, local)
+      : smoothstep(0, edge, local) * (1 - smoothstep(1 - edge, 1, local));
+  const [year, line] = TUNNEL_BEATS[index];
+  const story = smoothstep(start - 0.02, start + 0.025, page) * (1 - smoothstep(end, end + 0.03, page));
+  return { story, lineOpacity, year, line };
+}
 
 /* ---------- Lenis / scrolling ---------- */
 
@@ -268,8 +330,8 @@ export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pu
   const hero = heroScreens(baseScreens);
   const glassEnd = hero + GLASS_SCREENS;
   if (direction > 0) {
-    if (profile !== "desktop" && page >= 0.475 && page < 0.8) {
-      return { id: "hero-tunnel", screens: heroProgressToScreens(0.8, baseScreens) };
+    if (profile !== "desktop" && page >= 0.475 && page < 0.58) {
+      return { id: "hero-tunnel", screens: heroProgressToScreens(0.6, baseScreens) };
     }
     if (page >= 0.972 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035 };
     if ((journeyLocal === 0 && glass > 0.9 && pupilCovered) || (journeyLocal > 0 && journeyLocal < 0.06)) {
@@ -371,13 +433,9 @@ export function sceneFor(page, glass, journey, scaleIntro = 0) {
   return { scene: "redacted", opacity: 1 - smoothstep(0.88, 0.96, glass) };
 }
 
-export function interfaceFades(glass = 0, street = 1) {
+export function interfaceFades(glass = 0) {
   return {
     callouts: 1 - smoothstep(0.01, CALLOUT_RANGE * 0.9, glass),
-    subjectTop: 1 - smoothstep(18, 24, street),
-    subjectMiddle: 1 - smoothstep(22, 28, street),
-    subjectBottom: 1 - smoothstep(26, 32, street),
-    streetTitle: 1 - smoothstep(25, 33, street),
   };
 }
 
@@ -401,11 +459,22 @@ export const STORY_LINES = Object.freeze({
     "Now, AI ships\nas product.",
   ]),
   images: Object.freeze([
-    "First, models\nlearned context.",
-    "Then, retrieval\ngrounded answers.",
-    "Your data\nbecomes decisions.",
+    "LLMs, wired into\nreal products.",
+    "Answers grounded\nin your data.",
+    "Ten products.\nExplore any screen.",
   ]),
   redacted: Object.freeze(["Some decisions\nstay human."]),
+});
+// Same shape as STORY_LINES: the small label shown above each headline.
+export const STORY_KICKERS = Object.freeze({
+  code: Object.freeze([
+    "2018–2021 · Affinda · Document AI",
+    "2021–2022 · n8n · Workflow automation",
+    "2022–2025 · Lindy · AI agents",
+    "2025–2026 · Devjam · AI products",
+  ]),
+  images: Object.freeze(["LLM apps · Structured output", "RAG · Context retrieval", "Selected work · AI commerce & SaaS"]),
+  redacted: Object.freeze(["Human-in-the-loop · Approval paths"]),
 });
 const STORY_RANGES = Object.freeze({ ...CHAPTERS, images: [CHAPTERS.images[0], IMAGE_CLOSE.start] });
 export const STORY_DEPTH = Object.freeze({ far: -440, near: 140, fadeFraction: 0.1, arrivalDuration: 900 });
@@ -494,30 +563,39 @@ export const FOOTER_REVEAL_DURATION = 750;
 export const FOOTER_REVEAL_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 const FOOTER_DELAYS = Object.freeze({
   brand: 0,
-  "social-title": 100,
-  "social-0": 160,
-  "social-1": 220,
-  "social-2": 280,
-  "contacts-title": 320,
-  "address-0": 380,
-  "address-1": 440,
-  "address-2": 500,
-  "address-3": 560,
-  "contact-email": 620,
-  "proposal-title": 640,
-  "proposal-description": 700,
-  "field-name": 780,
-  "field-phone": 780,
-  "field-email": 900,
-  submit: 900,
-  credit: 1120,
-  legal: 1200,
+  "top-meta": 120,
+  "proposal-eyebrow": 200,
+  "proposal-title": 260,
+  "proposal-description": 320,
+  "field-name": 420,
+  "field-phone": 420,
+  "field-email": 520,
+  submit: 520,
+  "channels-title": 300,
+  "channel-0": 380,
+  "channel-1": 440,
+  "channel-2": 500,
+  "channel-3": 560,
+  "channel-4": 620,
+  credit: 820,
+  legal: 880,
 });
 
 export function footerDelay(key, width) {
-  if (width < 768) {
-    const mobile = { "field-phone": 1040, submit: 1180, credit: 1460, legal: 1540 };
-    if (key in mobile) return mobile[key];
+  if (width < 1024) {
+    const stacked = {
+      "field-phone": 620,
+      submit: 720,
+      "channels-title": 820,
+      "channel-0": 880,
+      "channel-1": 940,
+      "channel-2": 1000,
+      "channel-3": 1060,
+      "channel-4": 1120,
+      credit: 1260,
+      legal: 1320,
+    };
+    if (key in stacked) return stacked[key];
   }
   return FOOTER_DELAYS[key] ?? 0;
 }

@@ -1,6 +1,6 @@
 const CHAPTER_LINKS = [
-  ["code", "FULL_STACK"],
-  ["images", "LLM_RAG"],
+  ["code", "CAREER"],
+  ["images", "PROJECTS"],
   ["redacted", "AI_AGENTS"],
 ];
 
