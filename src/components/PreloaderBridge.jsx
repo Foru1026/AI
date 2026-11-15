@@ -6,13 +6,10 @@ export default function PreloaderBridge({ sceneReady, tunnelReady, glassReady, o
 
   useEffect(() => {
     let alive = true;
+    // Only the fonts needed for the first screen. Preloader already embeds its own subset fonts.
     Promise.all([
       document.fonts.load('400 16px "Neue Haas Grotesk Display Pro"'),
-      document.fonts.load('500 16px "Neue Haas Grotesk Display Pro"'),
       document.fonts.load('400 14px "Geist Mono"'),
-      document.fonts.load('400 14px "NP Geist Mono"'),
-      document.fonts.load('400 16px "NP Neue Haas Display"', "0123456789%"),
-      document.fonts.ready,
     ])
       .then(() => {
         if (!alive) return;
@@ -21,7 +18,9 @@ export default function PreloaderBridge({ sceneReady, tunnelReady, glassReady, o
       })
       .catch((error) => {
         console.error("[NODDAL preloader] Interface fonts:", error);
-        preloader.setStatus("[load error · please reload]");
+        if (!alive) return;
+        loadTasks.ui.done();
+        setFontsReady(true);
       });
     return () => {
       alive = false;
@@ -32,7 +31,11 @@ export default function PreloaderBridge({ sceneReady, tunnelReady, glassReady, o
     if (sceneReady) loadTasks.hero.done();
     if (tunnelReady) loadTasks.tunnel.done();
     if (glassReady) loadTasks.continuation.done();
-    if (sceneReady && tunnelReady && glassReady && fontsReady) preloader.ready();
+    // Unlock as soon as the first screen can paint. Datacluster keeps loading behind.
+    if (sceneReady && tunnelReady && fontsReady) {
+      loadTasks.continuation.done();
+      preloader.ready();
+    }
   }, [sceneReady, tunnelReady, glassReady, fontsReady]);
 
   useEffect(() => {

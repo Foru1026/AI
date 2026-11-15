@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
@@ -11,7 +11,7 @@ import EnergyBeam from "./EnergyBeam.jsx";
 import PlasmaPortal from "./PlasmaPortal.jsx";
 import { HeroBloom, LateralLens } from "./HeroEffects.jsx";
 
-// Compiles every shader and waits a dozen frames so the preloader hides a warm scene.
+// Compiles shaders and waits a few frames so the first paint is warm.
 function ShaderWarmup({ onReady }) {
   const { gl, scene, camera } = useThree();
   useEffect(() => {
@@ -28,7 +28,7 @@ function ShaderWarmup({ onReady }) {
       } catch {
         gl.compile(scene, camera);
       }
-      for (let i = 0; i < 12; i++) await nextFrame();
+      for (let i = 0; i < 2; i++) await nextFrame();
       if (!cancelled) onReady();
     })();
     return () => {
@@ -39,10 +39,16 @@ function ShaderWarmup({ onReady }) {
   return null;
 }
 
-export default function HeroScene({ pointer, scroll, motion, optics, onReady }) {
+export default function HeroScene({ pointer, scroll, motion, optics, onReady, loadExtras = false }) {
   const rimLight = useRef();
   const sideLight = useRef();
   const beamContact = useRef(-2.1);
+  const [cubeReady, setCubeReady] = useState(false);
+
+  const onCubeReady = useCallback(() => {
+    setCubeReady(true);
+    onReady();
+  }, [onReady]);
 
   useFrame(() => {
     const k = 1 - THREE.MathUtils.smoothstep(scroll.current, 0.45, 0.56);
@@ -58,12 +64,21 @@ export default function HeroScene({ pointer, scroll, motion, optics, onReady }) 
       <directionalLight position={[4, -2, 3]} intensity={0.75} color="#0f76ff" />
       <directionalLight ref={rimLight} position={[7, 3, -5]} intensity={1.85} color="#59AFFF" />
       <pointLight ref={sideLight} position={[4.2, 1.1, -3.4]} intensity={5.5} distance={8.5} decay={2} color="#59AFFF" />
+      {/* Cube unlocks the site; rock + HDR wait so they do not steal bandwidth. */}
       <Suspense fallback={null}>
-        <Environment files={ASSETS.environment.studio} background={false} />
-        <HeroTerrain pointer={pointer} scroll={scroll} beamContact={beamContact} />
         <ServerCube pointer={pointer} scroll={scroll} />
-        <ShaderWarmup onReady={onReady} />
+        <ShaderWarmup onReady={onCubeReady} />
       </Suspense>
+      {cubeReady && (
+        <Suspense fallback={null}>
+          <HeroTerrain pointer={pointer} scroll={scroll} beamContact={beamContact} />
+        </Suspense>
+      )}
+      {loadExtras && (
+        <Suspense fallback={null}>
+          <Environment files={ASSETS.environment.studio} background={false} />
+        </Suspense>
+      )}
       <EnergyBeam scroll={scroll} beamContact={beamContact} />
       <PlasmaPortal scroll={scroll} />
       <EffectComposer multisampling={0}>

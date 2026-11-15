@@ -96,9 +96,11 @@ export default function App() {
 
   const onSceneReady = useCallback(() => setSceneReady(true), []);
   const onTunnelReady = useCallback(() => setTunnelReady(true), []);
+  // Mount the heavy datacluster iframe after the hero is revealed so it does not
+  // compete with first-paint assets (HDR / GLBs / fonts).
   useEffect(() => {
-    if (sceneReady) setMountFrame(true);
-  }, [sceneReady]);
+    if (phase === "revealing" || phase === "done") setMountFrame(true);
+  }, [phase]);
   const onRevealing = useCallback(() => setPhase("revealing"), []);
   const onDone = useCallback(() => setPhase("done"), []);
   const [project, setProject] = useState(null);
@@ -361,7 +363,14 @@ export default function App() {
             camera={{ position: CAMERA_START, fov: CAMERA_FOV }}
             gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           >
-            <HeroScene pointer={pointer} scroll={page} motion={speed} optics={opticsRef} onReady={onSceneReady} />
+            <HeroScene
+              pointer={pointer}
+              scroll={page}
+              motion={speed}
+              optics={opticsRef}
+              onReady={onSceneReady}
+              loadExtras={phase !== "loading"}
+            />
           </Canvas>
         </div>
         <Atmosphere ref={atmosphere} />
