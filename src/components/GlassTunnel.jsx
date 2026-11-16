@@ -21,13 +21,14 @@ export default function GlassTunnel({ ref, onReady }) {
   useImperativeHandle(
     ref,
     () => ({
-      update(time, page, pointer, speed) {
+      update(time, page, pointer, speed, cover = 1) {
         const state = tunnelState(page);
         const prev = last.current;
+        const opacity = state.opacity * cover;
         if (layer.current) {
-          if (prev.opacity !== state.opacity) {
-            prev.opacity = state.opacity;
-            layer.current.style.opacity = String(state.opacity);
+          if (prev.opacity !== opacity) {
+            prev.opacity = opacity;
+            layer.current.style.opacity = String(opacity);
           }
           if (prev.active !== state.active) {
             prev.active = state.active;
@@ -35,7 +36,7 @@ export default function GlassTunnel({ ref, onReady }) {
             layer.current.dataset.active = String(state.active);
           }
         }
-        if (state.active) {
+        if (state.active && cover > 0.02) {
           try {
             renderer.current?.render(time, { page, pointer, speed });
           } catch (error) {

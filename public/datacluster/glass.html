@@ -823,6 +823,7 @@ function frame(){
   for (const m of bodies) if (!m.userData.list) m.visible = true;       // cube plates & floaters are re-checked next frame
   finishFrame();
 }
+let scheduleNext = true;
 function finishFrame(){
   // Keep the same quality governor for glass, energy portal and social scenes.
   if (window.__T == null){
@@ -833,7 +834,7 @@ function finishFrame(){
       if (perf.slow >= 2 && dpr > 1){ perf.slow = 0; pendingDpr = Math.max(1, dpr - 0.25); }
     }
   }
-  requestAnimationFrame(frame);
+  if (scheduleNext) requestAnimationFrame(frame);
 }
 
 // preloader: nothing moves until the pictures are decoded, every shader is compiled and every texture sits on the GPU
@@ -875,11 +876,14 @@ function finishFrame(){
   setP(1); await tick();
   t0 = performance.now(); last = 0; perf.last = performance.now();
   if (window.NodalHost) {
-    // Render the assembled, decoded scene before allowing the NODAL light cover to open.
-    frame();
+    // Settle bloom and transmission on the real opening frame before the page can show it.
+    scheduleNext = false;
+    for (let i = 0; i < 5; i++) frame();
+    scheduleNext = true;
     document.documentElement.classList.remove('loading');
     loader.remove(); document.getElementById('hint').remove();
     window.NodalHost.send('scene-ready');
+    frame();
   } else {
     requestAnimationFrame(frame);
     setTimeout(() => { loader.classList.add('done'); document.documentElement.classList.remove('loading'); }, 250);

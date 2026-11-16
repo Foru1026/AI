@@ -234,7 +234,7 @@ export default function App() {
     let last = performance.now();
     let height = innerHeight;
     let width = innerWidth;
-    const flags = { loaded: false, continuation: false, handoff: false };
+    const flags = { loaded: false, continuation: false, handoff: false, reveal: 0 };
 
     const tick = (now) => {
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1e3));
@@ -267,7 +267,6 @@ export default function App() {
       page.current = heroProgress(scroll / unit, baseScreens);
       const p = page.current;
       atmosphere.current?.update(p);
-      tunnel.current?.update(now, p, pointer.current, speed.current);
       glass.current = glassProgress((scroll - heroEnd) / unit);
       journey.current = journeyProgress((scroll - heroEnd) / unit - GLASS_SCREENS, profile);
       cursor.current?.update(p, glass.current, journey.current, projectOpen.current);
@@ -295,8 +294,12 @@ export default function App() {
       if (experience.current && experience.current.dataset.chapter !== chapter) experience.current.dataset.chapter = chapter;
       ui.current?.update(sceneFor(p, glass.current, journey.current, scaleIntro.current), glass.current, journey.current, p);
 
-      // Run the next scene while the portal is still up, so it is already on its first frame when it appears.
-      const frameWarm = continuationReady && p >= HERO_EXIT;
+      // Draw the next scene through the tunnel, hidden, so the first view is already settled.
+      const frameWarm = continuationReady && p >= 0.7;
+      const open = continuationReady && p >= CONTINUATION_PAGE ? 1 : 0;
+      const reveal = flags.reveal + (open - flags.reveal) * Math.min(1, dt / 0.14);
+      flags.reveal = Math.abs(open - reveal) < 0.01 ? open : reveal;
+      tunnel.current?.update(now, p, pointer.current, speed.current, 1 - flags.reveal);
       const handedOff = p >= HANDOFF_PAGE;
       if (frameWarm !== flags.continuation) {
         flags.continuation = frameWarm;
@@ -323,7 +326,7 @@ export default function App() {
         heroCanvas.current.classList.toggle("is-inactive", handedOff);
       }
       if (continuation.current) {
-        continuation.current.style.opacity = p >= CONTINUATION_PAGE ? "1" : "0";
+        continuation.current.style.opacity = String(flags.reveal);
         continuation.current.style.pointerEvents = p >= 0.999 ? "auto" : "none";
       }
       raf = requestAnimationFrame(tick);
