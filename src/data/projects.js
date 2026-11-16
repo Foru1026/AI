@@ -194,6 +194,101 @@ export const PROJECTS = Object.freeze(
       ],
       stack: ["React", "TypeScript", "Node.js", "AI agents", "Tool calling", "Docker"],
     },
+    {
+      slug: "virtik",
+      name: "Virtik",
+      category: "AI security operations",
+      url: "https://virtik.ai",
+      summary:
+        "A spatial operating system for physical sites: command, detection, response and field teams working from one shared model of cameras, incidents and people on duty.",
+      highlights: [
+        ["Sector", "Operations"],
+        ["AI focus", "Governed AI"],
+        ["Delivery", "Platform"],
+      ],
+      focus: [
+        "One map for sites, cameras, incidents and the nearest responders",
+        "Detection reviewed into incidents, then routed on the real site graph",
+        "AI answers grounded in live operations, under policy and budget",
+      ],
+      stack: ["TypeScript", "React", "AI agents", "Realtime", "PostgreSQL", "APIs"],
+    },
+    {
+      slug: "papayo",
+      name: "Papayo",
+      category: "Recruiting automation",
+      url: "https://papayo.ai",
+      summary:
+        "A team of recruiting agents that runs sourcing, matching, outreach and scheduling in one workflow, with a person approving every decision.",
+      highlights: [
+        ["Sector", "HR tech"],
+        ["AI focus", "AI agents"],
+        ["Delivery", "SaaS"],
+      ],
+      focus: [
+        "Briefs turned into a search profile before any outreach starts",
+        "Scored matches with a reason, not a black-box ranking",
+        "Outreach and interview scheduling that stay inside one pipeline",
+      ],
+      stack: ["LLM agents", "MCP", "Matching", "TypeScript", "Automation", "PostgreSQL"],
+    },
+    {
+      slug: "eloo",
+      name: "Eloo",
+      category: "Goal-built AI agents",
+      url: "https://eloo.ai",
+      summary:
+        "Agents you start by describing the outcome: research, content, prospecting and weekly priorities, assembled without drawing the workflow by hand.",
+      highlights: [
+        ["Sector", "Productivity"],
+        ["AI focus", "AI agents"],
+        ["Delivery", "Web app"],
+      ],
+      focus: [
+        "A stated goal becomes a working agent, tools included",
+        "Ready-made agents for research, content and follow-up",
+        "Runs that report back instead of waiting on a mapped flowchart",
+      ],
+      stack: ["LLM agents", "Tool calling", "Automation", "React", "TypeScript", "APIs"],
+    },
+    {
+      slug: "faux",
+      name: "Faux",
+      category: "Synthetic social network",
+      url: "https://www.faux.social",
+      summary:
+        "A social network where every profile, post and reply is generated. A live feed for testing social products against synthetic activity instead of real accounts.",
+      highlights: [
+        ["Sector", "Social"],
+        ["AI focus", "Generation"],
+        ["Delivery", "Web + API"],
+      ],
+      focus: [
+        "A feed that keeps posting without a human user base",
+        "Synthetic profiles and threads for product and research demos",
+        "An API surface for reading the generated network",
+      ],
+      stack: ["LLM apps", "Generation", "React", "TypeScript", "APIs", "Node.js"],
+    },
+    {
+      slug: "charm",
+      name: "Charm",
+      category: "AI-only social app",
+      url: "https://www.joincharmsocial.com",
+      summary:
+        "A private social app where the feed, comments and messages all come from AI characters. One person posts; the rest of the network is generated.",
+      highlights: [
+        ["Sector", "Consumer AI"],
+        ["AI focus", "Characters"],
+        ["Delivery", "Web + mobile"],
+      ],
+      focus: [
+        "A familiar feed with likes, comments and messages from AI characters",
+        "Characters with their own voice, memory and posts",
+        "A studio for adding new characters into that same world",
+      ],
+      stack: ["LLM apps", "React", "TypeScript", "Mobile", "Generation", "Node.js"],
+    },
   ].map((project) => Object.freeze({ ...project, shots: shots(project.slug) })),
 );
 

@@ -467,7 +467,7 @@ const field = [];
     addPlate({ size, parent: scene, kind: 0, idx: (i*3) % 8, storyIndex: i, glass: codeGlass, list: field,
       z, th, r, roll: r2(-0.45, 0.45), ph: r2(0, 6.28), inAt: r2(0.05, 0.3), rad, sep: new THREE.Vector3(), wp: new THREE.Vector3() });
   }
-  // Second stretch: all 20 pictures in numeric order on desktop and mobile.
+  // Second stretch: every project screen, in order, on desktop and mobile.
   // Keep the same flight length and glass rim, with a full 16:9 picture window.
   const photoCount = GLASS_CARD_IMAGES.length;
   for (let i = 0; i < photoCount; i++){

@@ -461,7 +461,7 @@ export const STORY_LINES = Object.freeze({
   images: Object.freeze([
     "LLMs, wired into\nreal products.",
     "Answers grounded\nin your data.",
-    "Ten products.\nExplore any screen.",
+    "Fifteen products.\nExplore any screen.",
   ]),
   redacted: Object.freeze(["Some decisions\nstay human."]),
 });
@@ -473,7 +473,7 @@ export const STORY_KICKERS = Object.freeze({
     "2022–2025 · Lindy · AI agents",
     "2025–2026 · Devjam · AI products",
   ]),
-  images: Object.freeze(["LLM apps · Structured output", "RAG · Context retrieval", "Selected work · AI commerce & SaaS"]),
+  images: Object.freeze(["LLM apps · Structured output", "RAG · Context retrieval", "Selected work · AI SaaS"]),
   redacted: Object.freeze(["Human-in-the-loop · Approval paths"]),
 });
 const STORY_RANGES = Object.freeze({ ...CHAPTERS, images: [CHAPTERS.images[0], IMAGE_CLOSE.start] });

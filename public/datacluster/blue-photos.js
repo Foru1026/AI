@@ -1,6 +1,6 @@
 // Scroll order: every project's landing screen first, then its second screen.
 // Slugs must match src/data/projects.js, which holds the detail-panel content.
-export const PROJECT_SLUGS = Object.freeze(["marqo", "syntheum", "deeplumen", "thankly", "vendifai", "kepler", "sozai", "rubick", "flint", "livedemo"]);
+export const PROJECT_SLUGS = Object.freeze(["marqo", "syntheum", "deeplumen", "thankly", "vendifai", "kepler", "sozai", "rubick", "flint", "livedemo", "virtik", "papayo", "eloo", "faux", "charm"]);
 export const CARD_PROJECTS = Object.freeze([1, 2].flatMap(() => PROJECT_SLUGS));
 export const GLASS_CARD_IMAGES = Object.freeze([1, 2].flatMap(shot =>
   PROJECT_SLUGS.map(slug => `../assets/projects/cards/${slug}-${shot}.jpg`)));
@@ -28,7 +28,7 @@ export async function createBluePhotoAtlas() {
   const canvas = document.createElement('canvas');
   canvas.width = PHOTO_ATLAS.width; canvas.height = PHOTO_ATLAS.height;
   const ctx = canvas.getContext('2d');
-  // Decode one compressed source at a time instead of retaining 20 full-size
+  // Decode one compressed source at a time instead of retaining every full-size
   // decoded images. All cards still share a single GPU atlas, below 4K.
   for (let index = 0; index < GLASS_CARD_IMAGES.length; index++) {
     const image = new Image();
