@@ -16,8 +16,8 @@
   var cfg = {
     manual: false, // true → waits for NoddalPreloader.ready() (recommended for WebGL scenes)
     autoTrack: true, // track document, fonts, <img>, <video> automatically
-    fillTime: 1.1, // s — fastest possible full-ring fill (so cached loads still animate)
-    hold: 380, // ms — hold the full ring before exit
+    fillTime: 0.65, // s — fastest possible full-ring fill (so cached loads still animate)
+    hold: 180, // ms — hold the full ring before exit
     settle: 250, // ms — everything must stay idle this long (catches late-registered assets)
     maxWait: 45000, // ms — safety valve: reveal the site anyway (0 = never)
     status: "[loading status]",
@@ -39,9 +39,6 @@
   };
   var clamp01 = function (v) {
     return v < 0 ? 0 : v > 1 ? 1 : v;
-  };
-  var rand = function (a, b) {
-    return a + Math.random() * (b - a);
   };
 
   /* ------------------------------------------------------------- progress core */
@@ -363,11 +360,10 @@
 
   /* Choreography is written in 25fps "frames", like the source video (1 frame = 40ms). */
   var FRAME = 40;
-  var INTRO_FRAMES = reduced ? 12 : 38; // letters (0–17) → icon + ring glitch (18–37) → steady
-  // Logo keeps its 1s fade; ring/meta keep their 1.5s animation. Start the
-  // black fade after 1s of ring travel (1.5x sooner), overlapping its tail.
-  var REVEAL_START_MS = reduced ? 240 : 2000;
-  var INTRO_CAP = 0.6; // progress shown during the intro never runs ahead of it
+  var INTRO_FRAMES = reduced ? 8 : 16; // mark fades in, then the ring follows real progress
+  // Start the black fade once the mark has left, overlapping the ring's exit.
+  var REVEAL_START_MS = reduced ? 200 : 700;
+  var INTRO_CAP = 0.92; // progress shown during the intro never runs ahead of it
 
   var LETTER_COUNT = 2;
   function allLetters(value) {
@@ -378,8 +374,7 @@
 
   function buildIntro() {
     var frames = [],
-      f,
-      i;
+      f;
     if (reduced) {
       for (f = 0; f < INTRO_FRAMES; f++) {
         frames.push({
@@ -391,67 +386,15 @@
       }
       return frames;
     }
-    // letters pop in shuffled, each with its own little flicker
-    var order = [1, 0],
-      starts = [2, 5];
-    var patterns = [
-      [0.3, 1, 0, 1],
-      [0.35, 0, 1, 0.5, 1],
-      [1, 0, 0.3, 1],
-      [0.3, 0.6, 0, 1, 1],
-      [0.4, 1, 1, 0, 1],
-    ];
-    var letterOp = allLetters(0).map(function () {
-      return [];
-    });
-    order.forEach(function (li, k) {
-      var p = patterns[(Math.random() * patterns.length) | 0];
-      for (var fr = 0; fr < INTRO_FRAMES; fr++) {
-        var j = fr - starts[k];
-        letterOp[li][fr] = j < 0 ? 0 : j < p.length ? p[j] : 1;
-      }
-    });
-    var spin = rand(0, 360);
+    // Steady fade. No letter blink and no jumping arc.
     for (f = 0; f < INTRO_FRAMES; f++) {
-      var s = {
-        logo: 1,
-        icon: 0,
-        letters: letterOp.map(function (a) {
-          return a[f];
-        }),
-        arc: null,
-      };
-      if (f === 18) {
-        s.icon = 1;
-        s.arc = { rot: spin, len: 0.72 };
-      } else if (f > 18 && f < 32) {
-        if (Math.random() < 0.12) {
-          s.letters = allLetters(0);
-        } else {
-          s.icon = Math.random() < 0.75 ? 1 : 0;
-          var wordOn = Math.random() < 0.72;
-          s.letters = s.letters.map(function () {
-            return wordOn ? (Math.random() < 0.18 ? 0 : 1) : 0;
-          });
-          if (Math.random() < 0.82)
-            s.arc = {
-              rot: spin + (f - 18) * 26 + rand(-35, 35),
-              len: rand(0.45, 0.78),
-            };
-        }
-      } else if (f >= 32) {
-        // 32 blank · 33 full · 34–35 blank · 36–37 half-bright → steady
-        var k2 = f - 32;
-        if (k2 === 0 || k2 === 2 || k2 === 3) {
-          s.letters = allLetters(0);
-        } else {
-          s.icon = 1;
-          s.letters = allLetters(1);
-          s.arc = "progress";
-          s.logo = k2 >= 4 ? 0.5 : 1;
-        }
-      }
-      frames.push(s);
+      var fade = Math.min(1, f / 8);
+      frames.push({
+        logo: fade,
+        icon: fade,
+        letters: allLetters(fade),
+        arc: "progress",
+      });
     }
     return frames;
   }
