@@ -31,7 +31,7 @@ function terrainStats(layers, geometry) {
   };
 }
 
-export default function HeroTerrain({ pointer, scroll, beamContact }) {
+export default function HeroTerrain({ pointer, scroll, beamContact, onReady }) {
   const { gl, size } = useThree();
   const sky = useTexture(SKY_TEXTURE);
   const rock = useGLTF(ROCK_MODEL);
@@ -43,6 +43,7 @@ export default function HeroTerrain({ pointer, scroll, beamContact }) {
   const meshes = useRef([]);
   const reduced = useRef(false);
   const probeTimer = useRef(0.1);
+  const reported = useRef(false);
   const profile = currentProfile();
 
   const layers = useMemo(() => terrainLayout(profile === "desktop" ? "desktop" : "mobile"), [profile]);
@@ -96,6 +97,10 @@ export default function HeroTerrain({ pointer, scroll, beamContact }) {
   }, [gl, layers, geometry, materials, profile]);
 
   useFrame((_, delta) => {
+    if (!reported.current) {
+      reported.current = true;
+      onReady?.();
+    }
     const m = terrainMotion(scroll.current, pointer.current, reduced.current);
     const damp = (from, to) => THREE.MathUtils.damp(from, to, 3.2, Math.min(delta, 0.05));
     const bg = background.current;
@@ -150,3 +155,6 @@ export default function HeroTerrain({ pointer, scroll, beamContact }) {
     </>
   );
 }
+
+useTexture.preload(SKY_TEXTURE);
+useGLTF.preload(ROCK_MODEL);

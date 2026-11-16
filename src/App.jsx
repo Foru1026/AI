@@ -319,7 +319,8 @@ export default function App() {
         heroCanvas.current.classList.toggle("is-inactive", handedOff);
       }
       if (continuation.current) {
-        continuation.current.style.opacity = p >= CONTINUATION_PAGE ? "1" : "0";
+        const cover = p >= 1 ? 1 : THREE.MathUtils.smoothstep(p, 0.97, 1);
+        continuation.current.style.opacity = String(cover);
         continuation.current.style.pointerEvents = p >= 0.999 ? "auto" : "none";
       }
       raf = requestAnimationFrame(tick);

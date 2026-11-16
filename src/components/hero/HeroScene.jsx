@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
@@ -43,12 +43,18 @@ export default function HeroScene({ pointer, scroll, motion, optics, onReady, lo
   const rimLight = useRef();
   const sideLight = useRef();
   const beamContact = useRef(-2.1);
-  const [cubeReady, setCubeReady] = useState(false);
-
-  const onCubeReady = useCallback(() => {
-    setCubeReady(true);
-    onReady();
-  }, [onReady]);
+  const ready = useRef({ warm: false, terrain: false, sent: false });
+  const report = useCallback(
+    (part) => {
+      ready.current[part] = true;
+      if (ready.current.sent || !ready.current.warm || !ready.current.terrain) return;
+      ready.current.sent = true;
+      onReady();
+    },
+    [onReady],
+  );
+  const onWarm = useCallback(() => report("warm"), [report]);
+  const onTerrain = useCallback(() => report("terrain"), [report]);
 
   useFrame(() => {
     const k = 1 - THREE.MathUtils.smoothstep(scroll.current, 0.45, 0.56);
@@ -64,16 +70,12 @@ export default function HeroScene({ pointer, scroll, motion, optics, onReady, lo
       <directionalLight position={[4, -2, 3]} intensity={0.75} color="#0f76ff" />
       <directionalLight ref={rimLight} position={[7, 3, -5]} intensity={1.85} color="#59AFFF" />
       <pointLight ref={sideLight} position={[4.2, 1.1, -3.4]} intensity={5.5} distance={8.5} decay={2} color="#59AFFF" />
-      {/* Cube unlocks the site; rock + HDR wait so they do not steal bandwidth. */}
+      {/* Cube and terrain load together so the hero never opens on an empty background. */}
       <Suspense fallback={null}>
+        <HeroTerrain pointer={pointer} scroll={scroll} beamContact={beamContact} onReady={onTerrain} />
         <ServerCube pointer={pointer} scroll={scroll} />
-        <ShaderWarmup onReady={onCubeReady} />
+        <ShaderWarmup onReady={onWarm} />
       </Suspense>
-      {cubeReady && (
-        <Suspense fallback={null}>
-          <HeroTerrain pointer={pointer} scroll={scroll} beamContact={beamContact} />
-        </Suspense>
-      )}
       {loadExtras && (
         <Suspense fallback={null}>
           <Environment files={ASSETS.environment.studio} background={false} />
