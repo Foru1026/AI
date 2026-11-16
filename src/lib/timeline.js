@@ -333,7 +333,7 @@ export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pu
     if (profile !== "desktop" && page >= 0.475 && page < 0.58) {
       return { id: "hero-tunnel", screens: heroProgressToScreens(0.6, baseScreens) };
     }
-    if (page >= 0.993 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035 };
+    if (page >= 0.972 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035 };
     if ((journeyLocal === 0 && glass > 0.9 && pupilCovered) || (journeyLocal > 0 && journeyLocal < 0.06)) {
       return { id: "eye-portal", screens: glassEnd + journeyPortalScreens(profile) * 0.065 };
     }

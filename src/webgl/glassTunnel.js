@@ -265,14 +265,13 @@ const smoothstep = (r, e, t) => {
     return n * n * (3 - 2 * n);
   };
 export function tunnelState(r) {
-  // Keep the approach and the white exit moving with scroll all the way to the handoff.
-  const e = smoothstep(0.8, 0.993, r);
+  const e = smoothstep(0.83, 0.971, r);
   return {
     active: r >= HERO_SPLIT && r < 1,
-    opacity: r >= HERO_SPLIT ? 1 - smoothstep(0.985, 1, r) : 0,
+    opacity: r >= HERO_SPLIT ? 1 - smoothstep(0.98, 1, r) : 0,
     flight: e,
     cameraDistance: e * 89.3,
-    whiteOut: smoothstep(0.9, 0.993, r),
+    whiteOut: smoothstep(0.935, 0.972, r),
   };
 }
 export function createTunnelRenderer(r, e = {}) {
@@ -634,11 +633,7 @@ export function createTunnelRenderer(r, e = {}) {
               t.uniform1i(Ae.uScene, 0),
               t.uniform1i(Ae.uBloomA, 1),
               t.uniform1i(Ae.uBloomB, 2),
-              t.uniform2f(
-                Ae.uCenter,
-                0.5 + ((Number.isFinite(tr) ? Math.min(0.72, Math.max(0.28, tr)) : 0.5) - 0.5) * (1 - pt.whiteOut),
-                0.5 + ((Number.isFinite(aa) ? Math.min(0.72, Math.max(0.28, aa)) : 0.5) - 0.5) * (1 - pt.whiteOut),
-              ),
+              t.uniform2f(Ae.uCenter, tr, aa),
               t.uniform1f(Ae.uAspect, xn),
               t.uniform1f(Ae.uTime, tt));
             const Fe = L ? 0 : Math.min(1, (st.speed || 0) / 3) * pt.flight;
