@@ -14,7 +14,11 @@ export const smootherstep = (a, b, v) => {
 
 export const HERO_SPLIT = 0.555;
 export const HERO_TAIL_STRETCH = 7.2;
-export const HERO_SCALE = HERO_SPLIT + (1 - HERO_SPLIT) * HERO_TAIL_STRETCH;
+// The portal square is already the whole view here. The rest of the exit is a short flick, not another long corridor.
+export const HERO_EXIT = 0.925;
+export const HERO_EXIT_SPAN = 0.32;
+const heroExitStart = HERO_SPLIT + (HERO_EXIT - HERO_SPLIT) * HERO_TAIL_STRETCH;
+export const HERO_SCALE = heroExitStart + HERO_EXIT_SPAN;
 export const CAMERA_START = Object.freeze([0, 0.2, 9]);
 export const CAMERA_FOV = 35;
 export const FLIGHT_END = 0.475;
@@ -44,12 +48,17 @@ export function cameraFlight(p, targetY = 0.1) {
 }
 
 export const heroScreens = (base) => base * HERO_SCALE;
-export const heroProgressToScreens = (p, base) =>
-  base * (p <= HERO_SPLIT ? p : HERO_SPLIT + (p - HERO_SPLIT) * HERO_TAIL_STRETCH);
+export const heroProgressToScreens = (p, base) => {
+  const clamped = clamp01(p);
+  if (clamped <= HERO_SPLIT) return base * clamped;
+  if (clamped <= HERO_EXIT) return base * (HERO_SPLIT + (clamped - HERO_SPLIT) * HERO_TAIL_STRETCH);
+  return base * (heroExitStart + ((clamped - HERO_EXIT) / (1 - HERO_EXIT)) * HERO_EXIT_SPAN);
+};
 export function heroProgress(screens, base) {
   const t = screens / base;
-  const p = t <= HERO_SPLIT ? t : HERO_SPLIT + (t - HERO_SPLIT) / HERO_TAIL_STRETCH;
-  return clamp01(p);
+  if (t <= HERO_SPLIT) return clamp01(t);
+  if (t <= heroExitStart) return HERO_SPLIT + (t - HERO_SPLIT) / HERO_TAIL_STRETCH;
+  return clamp01(HERO_EXIT + ((t - heroExitStart) / HERO_EXIT_SPAN) * (1 - HERO_EXIT));
 }
 
 // Page progress where the hero canvas hands off to the tunnel, and where the datacluster iframe takes over.
@@ -333,7 +342,7 @@ export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pu
     if (profile !== "desktop" && page >= 0.475 && page < 0.58) {
       return { id: "hero-tunnel", screens: heroProgressToScreens(0.6, baseScreens) };
     }
-    if (page >= 0.972 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035 };
+    if (page >= 0.94 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035, duration: 0.42 };
     if ((journeyLocal === 0 && glass > 0.9 && pupilCovered) || (journeyLocal > 0 && journeyLocal < 0.06)) {
       return { id: "eye-portal", screens: glassEnd + journeyPortalScreens(profile) * 0.065 };
     }
@@ -397,7 +406,7 @@ export function createSnapper(lenis) {
       if (!target) return null;
       const px = target.screens * state.unit;
       if ((px - lenis.scroll) * direction <= 1 || (px - lenis.targetScroll) * direction <= 1) return null;
-      const duration = state.reduced ? 0.2 : SNAP_DURATION;
+      const duration = state.reduced ? 0.2 : target.duration || SNAP_DURATION;
       active = { id: target.id, until: now + duration * 1e3 + 250 };
       lenis.scrollTo(px, {
         programmatic: true,

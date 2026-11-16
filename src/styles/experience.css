@@ -6,7 +6,7 @@
   width: 100%;
   height: calc(
     (1 + var(--journey-scroll-screens) + var(--glass-scroll-screens)) * 100vh +
-      var(--hero-scroll-screens) * var(--hero-scale, 4.0465) * 100vh
+      var(--hero-scroll-screens) * var(--hero-scale, 3.539) * 100vh
   );
   background: var(--surface-page);
 }

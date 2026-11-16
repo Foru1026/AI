@@ -8,6 +8,7 @@ import {
   CONTINUATION_PAGE,
   GLASS_SCREENS,
   HANDOFF_PAGE,
+  HERO_EXIT,
   HERO_SCALE,
   JOURNEY_SPLIT,
   LENIS,
@@ -294,17 +295,18 @@ export default function App() {
       if (experience.current && experience.current.dataset.chapter !== chapter) experience.current.dataset.chapter = chapter;
       ui.current?.update(sceneFor(p, glass.current, journey.current, scaleIntro.current), glass.current, journey.current, p);
 
-      const takeOver = continuationReady && p >= CONTINUATION_PAGE;
+      // Run the next scene while the portal is still up, so it is already on its first frame when it appears.
+      const frameWarm = continuationReady && p >= HERO_EXIT;
       const handedOff = p >= HANDOFF_PAGE;
-      if (takeOver !== flags.continuation) {
-        flags.continuation = takeOver;
-        setFrameActive(takeOver);
+      if (frameWarm !== flags.continuation) {
+        flags.continuation = frameWarm;
+        setFrameActive(frameWarm);
       }
       if (handedOff !== flags.handoff) {
         flags.handoff = handedOff;
         setHandoff(handedOff);
       }
-      if (frame.current && (takeOver || glass.current > 0 || journey.current > 0)) {
+      if (frame.current && (frameWarm || glass.current > 0 || journey.current > 0)) {
         const prev = lastProgress.current;
         const g = glass.current;
         const j = journey.current;
