@@ -1,10 +1,12 @@
 import { Scene, SceneFades, Reveal } from "../interface/Scene.jsx";
+import AboutScript from "./AboutScript.jsx";
 
 export default function ScaleSection({ active }) {
   return (
     <Scene name="scale" className="scene scene--scale" active={active}>
       <div className="scene__stage" />
       <SceneFades />
+      <AboutScript active={active} />
       <div className="scene__content scene-text">
         <Reveal as="h2" index={0} className="scene-text__title t-h2 text-gradient-h2">
           Every layer.

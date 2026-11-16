@@ -222,6 +222,157 @@
     text-align: center;
   }
 }
+/* Portal About reel — slow infinite movie-script crawl */
+.site-interface .about-script {
+  position: absolute;
+  z-index: var(--z-content);
+  inset: 11vh var(--gutter) 26vh;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--scene-fade) var(--ease-standard);
+}
+.site-interface .scene--scale.is-active .about-script {
+  opacity: 1;
+}
+.site-interface .about-script__viewport {
+  position: relative;
+  width: min(100%, 22.5rem);
+  height: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 78%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 78%,
+    transparent 100%
+  );
+}
+.site-interface .about-script__track {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.site-interface .about-script.is-running .about-script__track {
+  animation: about-script-crawl 120s linear infinite;
+}
+.site-interface .about-script__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-block: 2.5rem;
+}
+.site-interface .about-script__gap {
+  height: 1.35rem;
+}
+.site-interface .about-script__action,
+.site-interface .about-script__slug,
+.site-interface .about-script__chapter {
+  margin: 0;
+  color: var(--white-40);
+  font: var(--fw-mono-regular) var(--font-size-11) / var(--lh-none) var(--font-mono);
+  letter-spacing: var(--ls-mono-wide);
+  text-transform: uppercase;
+}
+.site-interface .about-script__chapter {
+  color: var(--white-60);
+  margin-top: 0.35rem;
+}
+.site-interface .about-script__name {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font: var(--fw-display-roman) clamp(1.5rem, 1.2rem + 1.2vw, 2rem) / var(--lh-tight) var(--font-display);
+  letter-spacing: var(--ls-tight);
+  text-shadow: 0 1px 18px rgba(0, 12, 28, 0.55);
+}
+.site-interface .about-script__role {
+  margin: 0;
+  color: var(--white-60);
+  font: var(--fw-display-light) var(--font-size-14) / var(--lh-snug) var(--font-display);
+  letter-spacing: var(--ls-tight);
+}
+.site-interface .about-script__beat {
+  margin: 0;
+  max-width: 20rem;
+  color: rgba(255, 255, 255, 0.88);
+  font: var(--fw-display-roman) var(--font-size-16) / 1.35 var(--font-display);
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+  text-shadow: 0 1px 16px rgba(0, 12, 28, 0.5);
+}
+.site-interface .about-script__line {
+  margin: 0;
+  max-width: 21rem;
+  color: rgba(255, 255, 255, 0.72);
+  font: var(--fw-display-light) var(--font-size-14) / 1.45 var(--font-display);
+  letter-spacing: var(--ls-tight);
+}
+.site-interface .about-script__credit {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: var(--space-12);
+  margin: 0.35rem 0 0;
+  align-items: baseline;
+}
+.site-interface .about-script__credit-label {
+  color: var(--white-40);
+  font: var(--fw-mono-regular) var(--font-size-11) / var(--lh-none) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.site-interface .about-script__credit-text {
+  color: rgba(255, 255, 255, 0.86);
+  font: var(--fw-display-roman) var(--font-size-14) / var(--lh-snug) var(--font-display);
+  letter-spacing: var(--ls-tight);
+}
+@keyframes about-script-crawl {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+@media (min-width: 768px) {
+  .site-interface .about-script {
+    inset: 12vh max(var(--gutter), 4vw) 24vh;
+  }
+  .site-interface .about-script__viewport {
+    width: min(100%, 26rem);
+  }
+  .site-interface .about-script__beat {
+    max-width: 24rem;
+  }
+  .site-interface .about-script__line {
+    max-width: 25rem;
+  }
+}
+@media (min-width: 1024px) {
+  .site-interface .about-script {
+    inset: 13vh max(var(--gutter), 5vw) 22vh auto;
+    width: min(28rem, 34vw);
+  }
+  .site-interface .about-script__viewport {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-interface .about-script.is-running .about-script__track {
+    animation: none;
+    transform: translate3d(0, -8%, 0);
+  }
+  .site-interface .about-script__block + .about-script__block {
+    display: none;
+  }
+}
 .site-interface .portal-caption {
   display: flex;
   flex-direction: column;
