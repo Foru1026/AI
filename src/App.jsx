@@ -350,7 +350,7 @@ export default function App() {
               ref={frame}
               className="is-current"
               src={ASSETS.datacluster}
-              title="Ben Clark — interactive 3D scenes"
+              title="4U — interactive 3D scenes"
               onLoad={syncFrame}
             />
           )}

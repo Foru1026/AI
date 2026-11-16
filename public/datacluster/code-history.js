@@ -1,4 +1,4 @@
-// 20 milestones from Ben Clark's career, oldest first, one per flight card.
+// 20 milestones from 4U's career, oldest first, one per flight card.
 // Code lines are illustrative of the work described, not excerpts of client code.
 const entry = data => Object.freeze({ ...data, code: data.code.join('\n') });
 

@@ -32,7 +32,7 @@
   --color-orange: #ff976b;          /* mobile tunnel glow (02.01, Ellipse 310) */
   --color-avatar-badge: #ebe3e1;    /* Figma: "Avatar Bage" */
   --color-available: #4ade80;       /* footer availability dot */
-  --color-wordmark: #212121;        /* footer BEN CLARK wordmark */
+  --color-wordmark: #212121;        /* footer 4U wordmark */
 
   /* Glitch channels: [REDACTED] headline + chapter-nav label */
   --color-glitch-red: #ff3149;
@@ -181,7 +181,7 @@
   /* ---------- Layout ---------- */
   --header-pad: 28px;               /* top/bottom; sides use --gutter */
   --header-h: 88px;                 /* 28 + 32 logo + 28 */
-  --logo-w: 137.635px;
+  --logo-w: 88px;
   --logo-h: 32px;
 
   --scene-min-h: 600px;             /* sections never get shorter than this */

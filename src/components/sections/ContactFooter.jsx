@@ -16,7 +16,7 @@ const CHANNELS = [
   { id: "whatsapp", label: "WhatsApp", value: "+1 (730) 210-3965", href: "https://wa.me/17302103965", action: "Chat" },
   { id: "telegram", label: "Telegram", value: "@foru10261", href: "https://t.me/foru10261", action: "Message" },
   { id: "discord", label: "Discord", value: "foru10261", copy: "foru10261", action: "Copy ID" },
-  { id: "resume", label: "Résumé", value: "Ben_Clark_Resume.pdf", href: "/Ben_Clark_Resume.pdf", action: "Download", download: true },
+  { id: "resume", label: "Résumé", value: "4U_Resume.pdf", href: "/4U_Resume.pdf", action: "Download", download: true },
 ];
 
 function FooterAsset({ asset, className = "", alt = "", fluid = false, reveal }) {
@@ -187,7 +187,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
       aria-hidden={!active && !preview}
       onTransitionEnd={onTransitionEnd}
     >
-      <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="Ben Clark" reveal="brand" />
+      <FooterAsset asset={ASSETS.footer.brand} className="contact-footer__brand" alt="4U" reveal="brand" />
       <div className="contact-footer__scroll">
         <footer ref={content} className="contact-footer" aria-label="Contact">
           <div className="contact-footer__top">
@@ -217,7 +217,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
                 className="contact-footer__form"
                 onSubmit={form.submit}
                 onInput={form.clearStatus}
-                aria-label="Contact Ben Clark"
+                aria-label="Contact 4U"
                 aria-busy={form.pending}
               >
                 <input
@@ -267,13 +267,13 @@ export default function ContactFooter({ ref, active = false, preview = false, on
 
           <div className="contact-footer__bottom">
             <div className="contact-footer__credits">
-              <p data-footer-reveal="credit">© 2026 Ben Clark. All rights reserved.</p>
-              <p data-footer-reveal="legal">Senior AI &amp; Full Stack Engineer</p>
+              <p data-footer-reveal="credit">© 2026 4U. All rights reserved.</p>
+              <p data-footer-reveal="legal">Senior AI &amp; Full Stack Engineer · For U</p>
             </div>
             <div className="contact-footer__wordmark" aria-hidden="true">
               <svg viewBox="0 0 1440 205" preserveAspectRatio="xMidYMax meet">
-                <text x="720" y="205" textAnchor="middle" textLength="1424" lengthAdjust="spacing">
-                  BEN CLARK
+                <text x="720" y="205" textAnchor="middle" textLength="720" lengthAdjust="spacing">
+                  4U
                 </text>
               </svg>
             </div>

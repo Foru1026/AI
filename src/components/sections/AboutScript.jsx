@@ -26,7 +26,7 @@ function ScriptBlock({ lines, ariaHidden = false }) {
 
 export default function AboutScript({ active }) {
   return (
-    <div className={`about-script${active ? " is-running" : ""}`} aria-label="About Ben Clark">
+    <div className={`about-script${active ? " is-running" : ""}`} aria-label="About 4U">
       <div className="about-script__viewport">
         <div className="about-script__track">
           <ScriptBlock lines={ABOUT_SCRIPT} />

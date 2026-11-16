@@ -1,8 +1,8 @@
 /** Movie-script lines for the energy-portal About reel. Keep career facts in sync with Site copy. */
 export const ABOUT_SCRIPT = Object.freeze([
   { kind: "action", text: "FADE IN:" },
-  { kind: "slug", text: "About · Ben Clark" },
-  { kind: "name", text: "Ben Clark" },
+  { kind: "slug", text: "About · For U" },
+  { kind: "name", text: "4U" },
   { kind: "role", text: "Senior AI & Full Stack Engineer" },
   { kind: "gap" },
   { kind: "action", text: "INT. PRODUCTION SYSTEMS — NINE YEARS" },

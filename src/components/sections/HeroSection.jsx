@@ -15,7 +15,7 @@ export default function HeroSection({ active }) {
             Engineered to scale.
           </Reveal>
           <Reveal as="p" index={1} className="hero__lead t-body">
-            Ben Clark is a Senior AI &amp; Full Stack Engineer who turns LLMs, APIs and business data into reliable
+            4U is a Senior AI &amp; Full Stack Engineer who turns LLMs, APIs and business data into reliable
             production systems: AI agents, RAG and full-stack products.
           </Reveal>
         </div>
