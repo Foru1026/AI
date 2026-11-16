@@ -14,9 +14,9 @@ export const smootherstep = (a, b, v) => {
 
 export const HERO_SPLIT = 0.555;
 export const HERO_TAIL_STRETCH = 7.2;
-// The portal square is already the whole view here. The rest of the exit is a short flick, not another long corridor.
-export const HERO_EXIT = 0.925;
-export const HERO_EXIT_SPAN = 0.32;
+// The square already fills the view here. The rest of the exit is one smooth scroll into the next page.
+export const HERO_EXIT = 0.9;
+export const HERO_EXIT_SPAN = 0.18;
 const heroExitStart = HERO_SPLIT + (HERO_EXIT - HERO_SPLIT) * HERO_TAIL_STRETCH;
 export const HERO_SCALE = heroExitStart + HERO_EXIT_SPAN;
 export const CAMERA_START = Object.freeze([0, 0.2, 9]);
@@ -64,8 +64,6 @@ export function heroProgress(screens, base) {
 // Page progress where the hero canvas hands off to the tunnel, and where the datacluster iframe takes over.
 export const HANDOFF_PAGE = 0.886;
 export const CONTINUATION_PAGE = 0.975;
-// If the next page is still compiling, hold on the portal before the square is white.
-export const PORTAL_HOLD_PAGE = 0.945;
 
 // The corridor in the glass tunnel. Each period holds, fades out, then the next one comes in.
 const TUNNEL_BEATS = Object.freeze([
@@ -336,7 +334,7 @@ export { deviceProfile, currentProfile } from "../config/breakpoints.ts";
 
 const SNAP_DURATION = 0.85;
 
-export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pupilCovered, direction, ready, glassReady = true }) {
+export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pupilCovered, direction, ready }) {
   if (!ready || !direction) return null;
   const hero = heroScreens(baseScreens);
   const glassEnd = hero + GLASS_SCREENS;
@@ -344,7 +342,6 @@ export function snapTarget({ profile, baseScreens, page, glass, journeyLocal, pu
     if (profile !== "desktop" && page >= 0.475 && page < 0.58) {
       return { id: "hero-tunnel", screens: heroProgressToScreens(0.6, baseScreens) };
     }
-    if (page >= 0.94 && page < 1 && glassReady) return { id: "tunnel-glass", screens: hero + 0.035, duration: 0.42 };
     if ((journeyLocal === 0 && glass > 0.9 && pupilCovered) || (journeyLocal > 0 && journeyLocal < 0.06)) {
       return { id: "eye-portal", screens: glassEnd + journeyPortalScreens(profile) * 0.065 };
     }

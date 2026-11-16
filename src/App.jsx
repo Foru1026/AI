@@ -5,11 +5,8 @@ import { Canvas } from "@react-three/fiber";
 import {
   CAMERA_FOV,
   CAMERA_START,
-  CONTINUATION_PAGE,
-  PORTAL_HOLD_PAGE,
   GLASS_SCREENS,
   HANDOFF_PAGE,
-  HERO_EXIT,
   HERO_SCALE,
   JOURNEY_SPLIT,
   LENIS,
@@ -18,11 +15,9 @@ import {
   createSnapper,
   currentProfile,
   easeOutCubic,
-  easeSmooth,
   glassChapter,
   glassProgress,
   heroProgress,
-  heroProgressToScreens,
   heroScreens,
   journeyProgress,
   journeyScreens,
@@ -31,6 +26,7 @@ import {
   navigateTo,
   sceneFor,
   scrollBy,
+  smoothstep,
 } from "./lib/timeline.js";
 import { preloader, loadTasks } from "./lib/preloader.ts";
 import { postToFrame as post, readFrameMessage } from "./bridge/datacluster.ts";
@@ -236,7 +232,7 @@ export default function App() {
     let last = performance.now();
     let height = innerHeight;
     let width = innerWidth;
-    const flags = { continuation: false, handoff: false, reveal: 0, held: false };
+    const flags = { continuation: false, handoff: false, reveal: 0 };
 
     const tick = (now) => {
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1e3));
@@ -254,18 +250,6 @@ export default function App() {
       }
       const { profile, baseScreens, unit } = current;
       const heroEnd = unit * heroScreens(baseScreens);
-      // Hold on the portal, before the square turns white, until the next page can draw.
-      const gate = heroProgressToScreens(PORTAL_HOLD_PAGE, baseScreens) * unit;
-      if (!continuationReady && instance.scroll > gate) {
-        flags.held = true;
-        instance.scrollTo(gate, { immediate: true });
-      } else if (flags.held && continuationReady) {
-        flags.held = false;
-        const into = unit * (heroScreens(baseScreens) + 0.035);
-        if (instance.scroll < into - 1) {
-          instance.scrollTo(into, { programmatic: true, duration: 0.42, easing: easeSmooth, lerp: 0 });
-        }
-      }
 
       const scroll = instance.scroll;
       speed.current = dt > 0 ? Math.abs(scroll - lastScroll.current) / unit / dt : 0;
@@ -287,7 +271,6 @@ export default function App() {
           journeyLocal: journey.current / JOURNEY_SPLIT,
           pupilCovered: pupilCovered.current,
           ready: snapReady.current,
-          glassReady: continuationReady,
           reduced: reducedMotion.matches,
         },
         now,
@@ -300,11 +283,10 @@ export default function App() {
       if (experience.current && experience.current.dataset.chapter !== chapter) experience.current.dataset.chapter = chapter;
       ui.current?.update(sceneFor(p, glass.current, journey.current, scaleIntro.current), glass.current, journey.current, p);
 
-      // Draw the next scene through the tunnel, hidden, so the first view is already settled.
+      // The next page opens with the scroll, through the square, instead of waiting for a snap.
       const frameWarm = continuationReady && p >= 0.7;
-      const open = continuationReady && p >= CONTINUATION_PAGE ? 1 : 0;
-      const reveal = flags.reveal + (open - flags.reveal) * Math.min(1, dt / 0.14);
-      flags.reveal = Math.abs(open - reveal) < 0.01 ? open : reveal;
+      const open = continuationReady ? smoothstep(0.92, 0.99, p) : 0;
+      flags.reveal = open;
       tunnel.current?.update(now, p, pointer.current, speed.current, 1 - flags.reveal);
       const handedOff = p >= HANDOFF_PAGE;
       if (frameWarm !== flags.continuation) {
