@@ -88,7 +88,9 @@ export default function App() {
   const page = useRef(0);
   const [sceneReady, setSceneReady] = useState(false);
   const [tunnelReady, setTunnelReady] = useState(false);
-  const [phase, setPhase] = useState(() => (preloader.phase === "done" ? "done" : "loading"));
+  // Stay covered until the hero itself is ready. A preloader timeout must not
+  // count as ready — on a slow connection that uncovers an unfinished scene.
+  const [phase, setPhase] = useState("loading");
   const interactive = useRef(false);
   interactive.current = phase === "done";
   const snapReady = useRef(false);
@@ -343,7 +345,7 @@ export default function App() {
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
-      <div className={`hero${phase !== "done" ? " is-loading" : ""}`}>
+      <div className={`hero${phase === "loading" ? " is-booting" : ""}`}>
         <div className="continuation" ref={continuation} aria-label="Datacluster scenes">
           {mountFrame && (
             <iframe
