@@ -577,8 +577,9 @@ const FOOTER_DELAYS = Object.freeze({
   "channel-2": 500,
   "channel-3": 560,
   "channel-4": 620,
-  credit: 820,
-  legal: 880,
+  "channel-5": 680,
+  credit: 880,
+  legal: 940,
 });
 
 export function footerDelay(key, width) {
@@ -592,8 +593,9 @@ export function footerDelay(key, width) {
       "channel-2": 1000,
       "channel-3": 1060,
       "channel-4": 1120,
-      credit: 1260,
-      legal: 1320,
+      "channel-5": 1180,
+      credit: 1320,
+      legal: 1380,
     };
     if (key in stacked) return stacked[key];
   }
