@@ -447,16 +447,23 @@
 }
 .site-interface .contact-footer__credits {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-24);
   padding: 0 var(--space-28);
   color: var(--white-40);
   font-size: var(--font-size-14);
+  line-height: var(--lh-snug);
+}
+.site-interface .contact-footer__credits p {
+  margin: 0;
 }
 .site-interface .contact-footer__wordmark {
   width: 100%;
   aspect-ratio: 1440 / 205;
   overflow: hidden;
+  line-height: 0;
 }
 .site-interface .contact-footer__wordmark svg {
   display: block;
@@ -467,8 +474,9 @@
 .site-interface .contact-footer__wordmark text {
   fill: var(--color-wordmark);
   font-family: var(--font-display);
-  font-size: 262px;
+  font-size: 220px;
   font-weight: var(--fw-display-medium);
+  letter-spacing: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .site-interface .contact-footer__pulse::after {

@@ -267,13 +267,13 @@ export default function ContactFooter({ ref, active = false, preview = false, on
 
           <div className="contact-footer__bottom">
             <div className="contact-footer__credits">
-              <p data-footer-reveal="credit">© 2026 4U. All rights reserved.</p>
-              <p data-footer-reveal="legal">Senior AI &amp; Full Stack Engineer · For U</p>
+              <p data-footer-reveal="credit">© 2026 For U. All rights reserved.</p>
+              <p data-footer-reveal="legal">Senior AI &amp; Full Stack Engineer</p>
             </div>
             <div className="contact-footer__wordmark" aria-hidden="true">
               <svg viewBox="0 0 1440 205" preserveAspectRatio="xMidYMax meet">
-                <text x="720" y="205" textAnchor="middle" textLength="720" lengthAdjust="spacing">
-                  4U
+                <text x="720" y="205" textAnchor="middle" textLength="1424" lengthAdjust="spacingAndGlyphs">
+                  BUILT FOR U
                 </text>
               </svg>
             </div>
