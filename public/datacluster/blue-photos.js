@@ -28,12 +28,16 @@ export async function createBluePhotoAtlas() {
   const canvas = document.createElement('canvas');
   canvas.width = PHOTO_ATLAS.width; canvas.height = PHOTO_ATLAS.height;
   const ctx = canvas.getContext('2d');
-  // Decode one compressed source at a time instead of retaining every full-size
-  // decoded images. All cards still share a single GPU atlas, below 4K.
-  for (let index = 0; index < GLASS_CARD_IMAGES.length; index++) {
+  // The card set is under a megabyte. Decode together so the first portal
+  // crossing is not waiting on thirty pictures in a row.
+  const images = await Promise.all(GLASS_CARD_IMAGES.map(async (src) => {
     const image = new Image();
-    image.src = new URL(GLASS_CARD_IMAGES[index], import.meta.url).href;
+    image.src = new URL(src, import.meta.url).href;
     await image.decode();
+    return image;
+  }));
+  for (let index = 0; index < images.length; index++) {
+    const image = images[index];
     const x = index % columns*cellWidth + gutter, y = Math.floor(index/columns)*cellHeight + gutter;
     ctx.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight, x, y, tileWidth, tileHeight);
     // Preserve the supplied colour grading; no blue tint or saturation filter.

@@ -6,6 +6,7 @@ import {
   CAMERA_FOV,
   CAMERA_START,
   CONTINUATION_PAGE,
+  PORTAL_HOLD_PAGE,
   GLASS_SCREENS,
   HANDOFF_PAGE,
   HERO_EXIT,
@@ -17,6 +18,7 @@ import {
   createSnapper,
   currentProfile,
   easeOutCubic,
+  easeSmooth,
   glassChapter,
   glassProgress,
   heroProgress,
@@ -99,11 +101,11 @@ export default function App() {
 
   const onSceneReady = useCallback(() => setSceneReady(true), []);
   const onTunnelReady = useCallback(() => setTunnelReady(true), []);
-  // Mount the heavy datacluster iframe after the hero is revealed so it does not
-  // compete with first-paint assets (HDR / GLBs / fonts).
+  // The hero's first frame is on the GPU. Start the next page now, while the
+  // loader finishes and the hero is on screen, so the portal is not the wait.
   useEffect(() => {
-    if (phase === "revealing" || phase === "done") setMountFrame(true);
-  }, [phase]);
+    if (sceneReady) setMountFrame(true);
+  }, [sceneReady]);
   const onRevealing = useCallback(() => setPhase("revealing"), []);
   const onDone = useCallback(() => setPhase("done"), []);
   const [project, setProject] = useState(null);
@@ -234,7 +236,7 @@ export default function App() {
     let last = performance.now();
     let height = innerHeight;
     let width = innerWidth;
-    const flags = { loaded: false, continuation: false, handoff: false, reveal: 0 };
+    const flags = { continuation: false, handoff: false, reveal: 0, held: false };
 
     const tick = (now) => {
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1e3));
@@ -252,14 +254,18 @@ export default function App() {
       }
       const { profile, baseScreens, unit } = current;
       const heroEnd = unit * heroScreens(baseScreens);
-      const targetPage = heroProgress(instance.targetScroll / unit, baseScreens);
-      if (!flags.loaded && targetPage > 0.7) {
-        flags.loaded = true;
-        setMountFrame(true);
+      // Hold on the portal, before the square turns white, until the next page can draw.
+      const gate = heroProgressToScreens(PORTAL_HOLD_PAGE, baseScreens) * unit;
+      if (!continuationReady && instance.scroll > gate) {
+        flags.held = true;
+        instance.scrollTo(gate, { immediate: true });
+      } else if (flags.held && continuationReady) {
+        flags.held = false;
+        const into = unit * (heroScreens(baseScreens) + 0.035);
+        if (instance.scroll < into - 1) {
+          instance.scrollTo(into, { programmatic: true, duration: 0.42, easing: easeSmooth, lerp: 0 });
+        }
       }
-      // Hold the scroll at the tunnel exit until the datacluster scenes are ready.
-      const gate = heroProgressToScreens(CONTINUATION_PAGE, baseScreens) * unit;
-      if (!continuationReady && instance.scroll > gate) instance.scrollTo(gate, { immediate: true });
 
       const scroll = instance.scroll;
       speed.current = dt > 0 ? Math.abs(scroll - lastScroll.current) / unit / dt : 0;

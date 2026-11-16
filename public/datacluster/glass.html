@@ -639,7 +639,7 @@ function frame(){
   applyLensSettings(lens.uniforms, opticalSettings, reducedMotion.matches);
   lens.uniforms.uAmount.value = lensAmount(lens.uniforms.uAmount.value, scrollSpeed, dt, reducedMotion.matches, opticalSettings);
   lens.uniforms.uAspect.value = innerWidth/innerHeight;
-  if (jprog > .00001) {
+  if (jprog > .00001 && journey) {
     if (cardsLive) { cardsLive = false; reportHover(null); }
     const shot = journey.update(jprog, now, mouse, renderer.getPixelRatio());
     scenePass.scene = shot.scene; scenePass.camera = shot.camera;
@@ -846,23 +846,13 @@ function finishFrame(){
   };
   const tick = () => new Promise(r => (window.NodalHost ? window.NodalHost.tick : requestAnimationFrame)(() => r()));
   setP(0.15);
-  const photoAtlas = await createBluePhotoAtlas();
   const irisImage = new Image(); irisImage.src = '../assets/img/eye-ball-tex.png';
-  await irisImage.decode(); irisTex.image = irisImage; irisTex.needsUpdate = true;
+  const [photoAtlas] = await Promise.all([createBluePhotoAtlas(), irisImage.decode()]);
+  irisTex.image = irisImage; irisTex.needsUpdate = true;
   photoBase.image = photoAtlas; photoBase.needsUpdate = true;
   photoClones.forEach(t => { t.image = photoAtlas; t.needsUpdate = true; });
   destinationTex.needsUpdate = true;
-  journey = await createJourney(renderer);
-  // Compile the entire continuation while hidden, not during the first portal crossing.
-  for (const shot of journey.scenes) {
-    try { await renderer.compileAsync(shot.scene, shot.camera); }
-    catch { renderer.compile(shot.scene, shot.camera); }
-  }
-  eyeMat.uniforms.uDestination.value = journey.preview;
-  destinationScreen.material.uniforms.uImage.value = journey.preview;
-  eyeMat.uniforms.uImageAspect.value = journey.previewAspect;
-  destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect;
-  setP(0.35); await tick();
+  setP(0.4); await tick();
   // everything in view at once for the warm-up: all plates at the origin, camera just in front
   const hidden = bodies.filter(m => !m.visible).concat([eye]); hidden.forEach(m => m.visible = true);
   bodies.forEach(m => { m.position.set(0, 0, 0); m.scale.setScalar(1); m.frustumCulled = false; });
@@ -889,7 +879,26 @@ function finishFrame(){
     setTimeout(() => { loader.classList.add('done'); document.documentElement.classList.remove('loading'); }, 250);
     setTimeout(() => loader.remove(), 1200);
   }
+  // The cube is the next page. The portal world is many screens later, so it
+  // compiles after the crossing instead of holding the white square.
+  warmJourney();
 })();
+async function warmJourney() {
+  try {
+    const built = await createJourney(renderer);
+    for (const shot of built.scenes) {
+      try { await renderer.compileAsync(shot.scene, shot.camera); }
+      catch { renderer.compile(shot.scene, shot.camera); }
+    }
+    journey = built;
+    eyeMat.uniforms.uDestination.value = journey.preview;
+    destinationScreen.material.uniforms.uImage.value = journey.preview;
+    eyeMat.uniforms.uImageAspect.value = journey.previewAspect;
+    destinationScreen.material.uniforms.uImageAspect.value = journey.previewAspect;
+  } catch (error) {
+    console.error('[Datacluster] portal', error);
+  }
+}
 </script>
 </body>
 </html>

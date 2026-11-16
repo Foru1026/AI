@@ -64,6 +64,8 @@ export function heroProgress(screens, base) {
 // Page progress where the hero canvas hands off to the tunnel, and where the datacluster iframe takes over.
 export const HANDOFF_PAGE = 0.886;
 export const CONTINUATION_PAGE = 0.975;
+// If the next page is still compiling, hold on the portal before the square is white.
+export const PORTAL_HOLD_PAGE = 0.945;
 
 // The corridor in the glass tunnel. Each period holds, fades out, then the next one comes in.
 const TUNNEL_BEATS = Object.freeze([
