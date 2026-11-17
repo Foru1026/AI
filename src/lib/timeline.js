@@ -476,10 +476,10 @@ export const STORY_LINES = Object.freeze({
 // Same shape as STORY_LINES: the small label shown above each headline.
 export const STORY_KICKERS = Object.freeze({
   code: Object.freeze([
-    "2018–2021 · Affinda · Document AI",
-    "2021–2022 · n8n · Workflow automation",
-    "2022–2025 · Lindy · AI agents",
-    "2025–2026 · Devjam · AI products",
+    "2018–2021 · Affinda · Victoria, Australia",
+    "2021–2022 · n8n · Berlin, Germany",
+    "2022–2025 · Lindy · San Francisco, CA",
+    "2025–2026 · Devjam · Hamburg, Germany",
   ]),
   images: Object.freeze(["LLM apps · Structured output", "RAG · Context retrieval", "Selected work · AI SaaS"]),
   redacted: Object.freeze(["Human-in-the-loop · Approval paths"]),

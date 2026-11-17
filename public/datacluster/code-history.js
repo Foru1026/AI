@@ -8,11 +8,11 @@ export const CODE_HISTORY = Object.freeze([
     title: 'COMPUTER SCIENCE FOUNDATIONS',
     code: [
       'degree = "BSc Computer Science"',
-      'school = "University of Science & Tech."',
-      'focus  = ["algorithms", "systems", "data"]',
+      'school = "HKUST"',
+      'place  = "Clear Water Bay, Hong Kong"',
     ],
     note: 'Algorithms, systems and data structures.\nThe base for everything that followed.',
-    source: 'Education / University of Science & Tech.',
+    source: 'Education / Clear Water Bay, Hong Kong',
   }),
   entry({
     dateLabel: '2018 · Affinda',
@@ -23,7 +23,7 @@ export const CODE_HISTORY = Object.freeze([
       'assert fields.total is not None',
     ],
     note: 'Python services turn business documents\ninto structured, validated data.',
-    source: 'Software Engineer / Affinda',
+    source: 'Software Engineer / Affinda · Victoria, Australia',
   }),
   entry({
     dateLabel: '2019 · Affinda',
@@ -34,7 +34,7 @@ export const CODE_HISTORY = Object.freeze([
       '    downstream.push(result)',
     ],
     note: 'Document pipelines feed results straight\ninto downstream business systems.',
-    source: 'Software Engineer / Affinda',
+    source: 'Software Engineer / Affinda · Victoria, Australia',
   }),
   entry({
     dateLabel: '2020 · Affinda',
@@ -45,7 +45,7 @@ export const CODE_HISTORY = Object.freeze([
       '    route_to_review(doc)',
     ],
     note: 'ML components run inside the backend;\nlow-confidence results go to review.',
-    source: 'Software Engineer / Affinda',
+    source: 'Software Engineer / Affinda · Victoria, Australia',
   }),
   entry({
     dateLabel: '2021 · Affinda',
@@ -56,7 +56,7 @@ export const CODE_HISTORY = Object.freeze([
       'else: commit(fields)',
     ],
     note: 'Validation workflows make automated\ndocument intelligence consistent.',
-    source: 'Software Engineer / Affinda',
+    source: 'Software Engineer / Affinda · Victoria, Australia',
   }),
   entry({
     dateLabel: '2021 · n8n',
@@ -67,7 +67,7 @@ export const CODE_HISTORY = Object.freeze([
       '  .then(notify("#sales"))',
     ],
     note: 'Backend services and automations connect\nAPIs, databases and SaaS platforms.',
-    source: 'Software Engineer / n8n',
+    source: 'Software Engineer / n8n · Berlin, Germany',
   }),
   entry({
     dateLabel: '2021 · n8n',
@@ -78,7 +78,7 @@ export const CODE_HISTORY = Object.freeze([
       'await flow.activate()',
     ],
     note: 'Reusable workflows for data sync,\nnotifications and integrations.',
-    source: 'Software Engineer / n8n',
+    source: 'Software Engineer / n8n · Berlin, Germany',
   }),
   entry({
     dateLabel: '2022 · n8n',
@@ -89,7 +89,7 @@ export const CODE_HISTORY = Object.freeze([
       'else escalate(ticket)',
     ],
     note: 'Business rules and model decisions\nwork side by side.',
-    source: 'Automation Engineer / n8n',
+    source: 'Automation Engineer / n8n · Berlin, Germany',
   }),
   entry({
     dateLabel: '2022 · n8n',
@@ -100,7 +100,7 @@ export const CODE_HISTORY = Object.freeze([
       '})',
     ],
     note: 'Error handling, retries and logging\nmake automations dependable.',
-    source: 'Promoted to Automation Engineer / n8n',
+    source: 'Promoted to Automation Engineer / n8n · Berlin, Germany',
   }),
   entry({
     dateLabel: '2022 · Lindy',
@@ -111,7 +111,7 @@ export const CODE_HISTORY = Object.freeze([
       'agent.execute(plan)',
     ],
     note: 'Multi-step agents for research,\nscheduling and communication.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2023 · Lindy',
@@ -122,7 +122,7 @@ export const CODE_HISTORY = Object.freeze([
       'outbox.queue(reply)',
     ],
     note: 'LLM reasoning grounded in structured data,\nexternal APIs and integrations.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2023 · Lindy',
@@ -133,7 +133,7 @@ export const CODE_HISTORY = Object.freeze([
       '    return calendar.insert(validate(args))',
     ],
     note: 'Tool-based execution with validated,\ncontrolled actions.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2024 · Lindy',
@@ -144,7 +144,7 @@ export const CODE_HISTORY = Object.freeze([
       'store.save(run_id, state)',
     ],
     note: 'Workflow state management keeps long\nautomations resumable.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2024 · Lindy',
@@ -155,7 +155,7 @@ export const CODE_HISTORY = Object.freeze([
       'agent.execute(action)',
     ],
     note: 'Human-approval and exception paths for\ntasks that need business judgment.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2025 · Lindy',
@@ -166,7 +166,7 @@ export const CODE_HISTORY = Object.freeze([
       'deploy(workflow, env="production")',
     ],
     note: 'Operational needs translated into\nreliable AI automation systems.',
-    source: 'AI Automation & Agent Engineer / Lindy',
+    source: 'AI Agent Engineer / Lindy · San Francisco, CA',
   }),
   entry({
     dateLabel: '2025 · Devjam',
@@ -177,7 +177,7 @@ export const CODE_HISTORY = Object.freeze([
       '  fallback={<HumanHandoff />} />',
     ],
     note: 'LLM assistants with retrieval, permissions\nand graceful fallbacks.',
-    source: 'Senior AI & Full Stack Engineer / Devjam',
+    source: 'Senior AI & Full Stack Engineer / Devjam · Hamburg, Germany',
   }),
   entry({
     dateLabel: '2025 · Devjam',
@@ -188,7 +188,7 @@ export const CODE_HISTORY = Object.freeze([
       '  return <Table rows={rows} />;',
     ],
     note: 'Reusable React components shipped across\n15+ production features.',
-    source: 'Senior AI & Full Stack Engineer / Devjam',
+    source: 'Senior AI & Full Stack Engineer / Devjam · Hamburg, Germany',
   }),
   entry({
     dateLabel: '2026 · Devjam',
@@ -199,7 +199,7 @@ export const CODE_HISTORY = Object.freeze([
       '-- plus leaner rendering and API calls',
     ],
     note: 'Rendering, API and database work adds up\nto roughly 35% better performance.',
-    source: 'Senior AI & Full Stack Engineer / Devjam',
+    source: 'Senior AI & Full Stack Engineer / Devjam · Hamburg, Germany',
   }),
   entry({
     dateLabel: '2026 · Devjam',
@@ -210,7 +210,7 @@ export const CODE_HISTORY = Object.freeze([
       '// docker build · ci test · deploy',
     ],
     note: 'Validation, logging, containers and CI/CD\nkeep maintained systems above 99%.',
-    source: 'Senior AI & Full Stack Engineer / Devjam',
+    source: 'Senior AI & Full Stack Engineer / Devjam · Hamburg, Germany',
   }),
   entry({
     dateLabel: '2026 · Devjam',
@@ -221,7 +221,7 @@ export const CODE_HISTORY = Object.freeze([
       'await release.ship()',
     ],
     note: 'Partnering with product and engineering\non trade-offs, reviews and releases.',
-    source: 'Senior AI & Full Stack Engineer / Devjam',
+    source: 'Senior AI & Full Stack Engineer / Devjam · Hamburg, Germany',
   }),
 ]);
 

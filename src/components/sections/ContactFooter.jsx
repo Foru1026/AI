@@ -195,7 +195,7 @@ export default function ContactFooter({ ref, active = false, preview = false, on
             <div className="contact-footer__meta" data-footer-reveal="top-meta">
               <p className="contact-footer__availability">
                 <span className="contact-footer__pulse" aria-hidden="true" />
-                Open to new opportunities
+                La Habra, U.S. · Open to new opportunities
               </p>
             </div>
           </div>
