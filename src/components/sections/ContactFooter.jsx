@@ -16,7 +16,6 @@ const CHANNELS = [
   { id: "whatsapp", label: "WhatsApp", value: "+1 (730) 210-3965", href: "https://wa.me/17302103965", action: "Chat" },
   { id: "telegram", label: "Telegram", value: "@foru10261", href: "https://t.me/foru10261", action: "Message" },
   { id: "github", label: "GitHub", value: "Foru1026", href: "https://github.com/Foru1026", action: "Open" },
-  { id: "discord", label: "Discord", value: "foru10261", copy: "foru10261", action: "Copy ID" },
   { id: "resume", label: "Résumé", value: "4U_Resume.pdf", href: "/4U_Resume.pdf", action: "Download", download: true },
 ];
 
